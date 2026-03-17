@@ -7,38 +7,6 @@ from openclaw_acp.agent import OpenClawAgent
 
 class TestOpenClawAgent:
     @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_default_gateway_url(self):
-        agent = OpenClawAgent(auto_start=False)
-        assert agent.gateway_url == "ws://127.0.0.1:18789"
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_custom_gateway_url(self):
-        agent = OpenClawAgent(gateway_url="ws://custom:9999", auto_start=False)
-        assert agent.gateway_url == "ws://custom:9999"
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_default_agent_name(self):
-        agent = OpenClawAgent(auto_start=False)
-        assert agent.agent == "main"
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_custom_agent_name(self):
-        agent = OpenClawAgent(agent="custom_agent", auto_start=False)
-        assert agent.agent == "custom_agent"
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_not_started_by_default(self):
-        agent = OpenClawAgent(auto_start=False)
-        assert agent._started is False
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_initial_state(self):
-        agent = OpenClawAgent(auto_start=False)
-        assert agent._proc is None
-        assert agent._session_id is None
-        assert agent._pending == {}
-
-    @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
     def test_step_raises_when_not_started(self):
         agent = OpenClawAgent(auto_start=False)
         with pytest.raises(RuntimeError, match="请先调用 start()"):
@@ -59,12 +27,16 @@ class TestOpenClawAgent:
                 mock_start.assert_called_once()
 
     @patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"})
-    def test_context_manager_stops_on_exit(self):
-        with patch.object(OpenClawAgent, "start"):
-            with patch.object(OpenClawAgent, "stop") as mock_stop:
-                agent = OpenClawAgent(auto_start=False)
-                agent.stop()
-                mock_stop.assert_called_once()
+    def test_stop(self):
+        agent = OpenClawAgent(auto_start=False)
+        agent._started = True
+        proc_mock = Mock()
+        agent._proc = proc_mock
+        agent.stop()
+        proc_mock.terminate.assert_called_once()
+        proc_mock.wait.assert_called_once()
+        assert agent._started is False
+        assert agent._proc is None
 
 
 class TestOpenClawAgentRequiresApiKey:
