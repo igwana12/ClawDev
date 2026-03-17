@@ -342,4 +342,5 @@ class OpenClawAgent:
         self.stop()
 
     def __del__(self):
-        self.stop()
+        if hasattr(self, "_started"):
+            self.stop()
