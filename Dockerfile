@@ -55,6 +55,12 @@ RUN set -eux && \
     npm config set registry https://registry.npmmirror.com && \
     npm install -g @tobilu/qmd
 
+# ── 安装 uv ──────────────────────────────────────────────────────
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh && \
+    uv --version
+
+ENV UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+
 COPY --chown=node:node . /app/ClawDev/
 
 COPY --chown=root:root scripts/glab-warpper /usr/local/bin/glab
