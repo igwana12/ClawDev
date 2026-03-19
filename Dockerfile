@@ -61,9 +61,6 @@ RUN curl -LsSf https://uv.agentsmirror.com/install-cn.sh | UV_INSTALL_DIR=/usr/l
 
 ENV UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 
-COPY --chown=root:root scripts/tea-wrapper /usr/local/bin/tea
-RUN chmod 755 /usr/local/bin/tea
-
 ENV PATH="${PATH}:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/node/.bun/bin"
 
 USER node
