@@ -4,11 +4,11 @@ networks:
 
 services:
   openclaw-gateway:
-    # 建议替换为安装了 glab 的自定义镜像，Dockerfile 示例：
-    #   FROM openclaw:local
-    #   RUN curl -sL https://gitlab.com/gitlab-org/cli/-/releases/permalink/latest/downloads/glab_Linux_x86_64.tar.gz \
-    #       | tar xz -C /usr/local/bin glab
-    image: ${OPENCLAW_IMAGE:-openclaw:custom}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - OPENCLAW_QMD_CUDA=false
     networks:
       - openclaw-net
     environment:
@@ -26,8 +26,8 @@ services:
       # QMD 无 GPU 环境配置
       NODE_LLAMA_CPP_CUDA: "false"
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-~/workspace}:/home/node/.openclaw/workspace
       ## 取消注释以启用沙箱隔离（agents.defaults.sandbox）
       ## 需要镜像内含 Docker CLI（构建时加 --build-arg OPENCLAW_INSTALL_DOCKER_CLI=1）
       ## 或使用 docker-setup.sh 并设置 OPENCLAW_SANDBOX=1
