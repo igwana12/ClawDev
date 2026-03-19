@@ -9,32 +9,19 @@ services:
       dockerfile: Dockerfile
       args:
         - OPENCLAW_QMD_CUDA=false
+    image: openclaw:custom
     networks:
       - openclaw-net
     environment:
       HOME: /home/node
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
-      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
       TZ: ${OPENCLAW_TZ:-UTC}
-      # glab 通过容器内服务名访问 GitLab，不受 external_url 影响
-      GITLAB_HOST: http://gitlab:8929
-      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
-      # QMD 无 GPU 环境配置
+      GITEA_HOST: http://gitea:3000
       NODE_LLAMA_CPP_CUDA: "false"
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR:-~/workspace}:/home/node/.openclaw/workspace
-      ## 取消注释以启用沙箱隔离（agents.defaults.sandbox）
-      ## 需要镜像内含 Docker CLI（构建时加 --build-arg OPENCLAW_INSTALL_DOCKER_CLI=1）
-      ## 或使用 docker-setup.sh 并设置 OPENCLAW_SANDBOX=1
-      ## DOCKER_GID 设置为宿主机 docker 组的 GID（运行: stat -c '%g' /var/run/docker.sock）
-      # - /var/run/docker.sock:/var/run/docker.sock
-    # group_add:
-    #   - "${DOCKER_GID:-999}"
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -63,38 +50,26 @@ services:
       retries: 5
       start_period: 20s
 
-  gitlab:
-    image: gitlab/gitlab-ce:18.8.6-ce.0
-    container_name: roger-gitlab
+  gitea:
+    image: gitea/gitea:latest
+    container_name: roger-gitea
     restart: always
-    hostname: "gitlab"
     networks:
       - openclaw-net
     environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8929'
-        nginx['listen_port'] = 8929
-        gitlab_rails['gitlab_shell_ssh_port'] = 2424
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__server__SSH_PORT=2424
+      - GITEA__server__SSH_LISTEN_PORT=22
+      - GITEA__server__ROOT_URL=http://localhost:3000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__actions__ENABLED=false        # 不需要 Actions，关掉省资源
+      - TZ=${OPENCLAW_TZ:-UTC}
     ports:
-      - "8929:8929"
+      - "3000:3000"
       - "2424:22"
     volumes:
-      - "./volumes/config:/etc/gitlab"
-      - "./volumes/logs:/var/log/gitlab"
-      - "./volumes/data:/var/opt/gitlab"
-    shm_size: "256m"
-
-  gitlab-runner:
-    image: gitlab/gitlab-runner:alpine-v18.8.0
-    container_name: roger-gitlab-runner
-    restart: always
-    networks:
-      - openclaw-net
-    depends_on:
-      - gitlab
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./volumes/config/gitlab-runner:/etc/gitlab-runner"
-      - "./volumes/bin/docker:/usr/bin/docker"
-    command: ["run", "--user=root", "--working-directory=/home/gitlab-runner"]
-    privileged: true
+      - ./volumes/gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro

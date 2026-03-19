@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# 基于 openclaw:local 扩展，新增 Homebrew、glab、QMD
+# 基于 openclaw:local 扩展，新增 Homebrew、tea、QMD
 # 构建命令：docker build -f Dockerfile.openclaw-custom -t openclaw:custom .
 
 FROM openclaw:local
@@ -39,7 +39,7 @@ RUN set -eux && \
     gosu node env \
       HOME=/home/node \
       PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH" \
-      brew install glab
+      brew install tea
 
 RUN set -eux && \
     gosu node env \
@@ -56,18 +56,16 @@ RUN set -eux && \
     npm install -g @tobilu/qmd
 
 # ── 安装 uv ──────────────────────────────────────────────────────
-RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh && \
+RUN curl -LsSf https://uv.agentsmirror.com/install-cn.sh | UV_INSTALL_DIR=/usr/local/bin sh && \
     uv --version
 
 ENV UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 
-COPY --chown=node:node . /app/ClawDev/
-
-COPY --chown=root:root scripts/glab-warpper /usr/local/bin/glab
-RUN chmod 755 /usr/local/bin/glab
+COPY --chown=root:root scripts/tea-wrapper /usr/local/bin/tea
+RUN chmod 755 /usr/local/bin/tea
 
 ENV PATH="${PATH}:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/node/.bun/bin"
 
 USER node
 
-RUN brew --version && glab --version  && bun --version && qmd --version
+RUN brew --version && tea --version && bun --version && qmd --version
