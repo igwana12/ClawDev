@@ -35,7 +35,6 @@ class OpenClawAgent:
         self.gateway_url = (
             gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
         )
-        print(self.gateway_url)
         self.agent = agent or "main"
         self.cwd = (
             cwd
