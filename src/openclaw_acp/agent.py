@@ -1,3 +1,23 @@
+# Copyright 2024 HDAnzz
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+OpenClaw ACP (Agent Client Protocol) Client
+
+提供与 OpenClaw Gateway 通信的 Python 包装类，支持同步、异步和流式响应。
+"""
+
 import asyncio
 import hashlib
 import json
@@ -5,7 +25,7 @@ import os
 import subprocess
 import threading
 import uuid
-from queue import Queue, Empty
+from queue import Empty, Queue
 from typing import AsyncGenerator, Generator, Optional
 
 from .utils import require_api_key
@@ -15,14 +35,37 @@ class OpenClawAgent:
     """
     简化使用的 OpenClaw Agent 包装类。
 
-    用法:
-        agent = OpenClawAgent()
-        response = agent("你的消息")
-        # 或
+    通过 ACP 协议与 OpenClaw Gateway 通信，支持：
+    - 同步调用
+    - 异步调用
+    - 流式响应
+
+    Args:
+        gateway_url: Gateway WebSocket URL（默认：ws://127.0.0.1:18789）
+        agent: Agent 名称（默认：main）
+        cwd: 工作目录（默认：~/.openclaw/workspace-<agent-name>）
+        auto_start: 是否自动启动（默认：True）
+
+    Attributes:
+        agent: Agent 名称
+        gateway_url: Gateway URL
+        cwd: 工作目录
+
+    Example:
+        # 同步用法
+        agent = OpenClawAgent(agent="programmer-a")
         response = agent.step("你的消息")
 
-    异步用法:
+        # 异步用法
         response = await agent.astep("你的消息")
+
+        # 流式用法
+        async for chunk in agent.stream("你的消息"):
+            print(chunk, end="", flush=True)
+
+        # 上下文管理器
+        with OpenClawAgent() as agent:
+            response = agent.step("你好")
     """
 
     @require_api_key("OPENCLAW_GATEWAY_TOKEN")
@@ -33,6 +76,15 @@ class OpenClawAgent:
         cwd: Optional[str] = None,
         auto_start: bool = True,
     ):
+        """
+        初始化 OpenClaw Agent。
+
+        Args:
+            gateway_url: Gateway WebSocket URL
+            agent: Agent 名称
+            cwd: 工作目录
+            auto_start: 是否自动启动
+        """
         self.gateway_url = (
             gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
         )
@@ -45,19 +97,32 @@ class OpenClawAgent:
         )
         self._session_suffix = hashlib.sha256(self.agent.encode()).hexdigest()[:12]
 
-        self._proc = None
-        self._recv_queue = Queue()
+        self._proc: Optional[subprocess.Popen] = None
+        self._recv_queue: Queue = Queue()
         self._pending: dict[str, Queue] = {}
-        self._session_id = None
-        self._lock = threading.Lock()
-        self._started = False
+        self._session_id: Optional[str] = None
+        self._lock: threading.Lock = threading.Lock()
+        self._started: bool = False
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
 
         if auto_start:
             self.start()
 
-    def start(self):
+    def start(self) -> None:
+        """
+        启动 Agent 并创建会话。
+
+        执行以下步骤：
+        1. 启动 openclaw acp 子进程
+        2. 启动 stdout/stderr 读取线程
+        3. 发送 initialize 握手
+        4. 创建新会话
+
+        Raises:
+            TimeoutError: 握手或会话创建超时
+            RuntimeError: 初始化失败
+        """
         if self._started:
             return
 
@@ -96,7 +161,12 @@ class OpenClawAgent:
         self._session_id = self._new_session()
         self._started = True
 
-    def stop(self):
+    def stop(self) -> None:
+        """
+        停止 Agent 并关闭子进程。
+
+        关闭 stdin，终止子进程，清除会话 ID。
+        """
         if not self._started:
             return
         if self._proc:
@@ -111,9 +181,33 @@ class OpenClawAgent:
         self._started = False
 
     def __call__(self, message: str, timeout: int = 120) -> str:
+        """
+        使用调用语法发送消息。
+
+        Args:
+            message: 发送的消息
+            timeout: 超时时间（秒）
+
+        Returns:
+            Agent 响应文本
+        """
         return self.step(message, timeout)
 
     def step(self, message: str, timeout: int = 120) -> str:
+        """
+        发送消息并等待完整响应。
+
+        Args:
+            message: 发送的消息
+            timeout: 超时时间（秒）
+
+        Returns:
+            Agent 响应文本
+
+        Raises:
+            RuntimeError: Agent 未启动或发生错误
+            TimeoutError: 等待响应超时
+        """
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
@@ -176,6 +270,16 @@ class OpenClawAgent:
         return "".join(collected).strip()
 
     async def astep(self, message: str, timeout: int = 120) -> str:
+        """
+        异步发送消息并等待响应。
+
+        Args:
+            message: 发送的消息
+            timeout: 超时时间（秒）
+
+        Returns:
+            Agent 响应文本
+        """
         loop = asyncio.get_event_loop()
         return await asyncio.wait_for(
             loop.run_in_executor(None, self.step, message, timeout),
@@ -183,6 +287,21 @@ class OpenClawAgent:
         )
 
     def stream(self, message: str, timeout: int = 120) -> AsyncGenerator[str, None]:
+        """
+        流式发送消息，逐块返回响应。
+
+        Args:
+            message: 发送的消息
+            timeout: 超时时间（秒）
+
+        Yields:
+            响应文本片段
+
+        Example:
+            async for chunk in agent.stream("你好"):
+                print(chunk, end="", flush=True)
+        """
+
         async def _stream():
             loop = asyncio.get_event_loop()
             q: asyncio.Queue = asyncio.Queue()
@@ -210,6 +329,20 @@ class OpenClawAgent:
     def _stream_internal(
         self, message: str, timeout: int = 120
     ) -> Generator[str, None, None]:
+        """
+        内部流式处理函数。
+
+        Args:
+            message: 发送的消息
+            timeout: 超时时间
+
+        Yields:
+            响应文本片段
+
+        Raises:
+            RuntimeError: Agent 未启动或发生错误
+            TimeoutError: 等待响应超时
+        """
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
@@ -261,7 +394,17 @@ class OpenClawAgent:
             elif method == "session/error":
                 raise RuntimeError(f"[session error] {msg.get('params')}")
 
-    def _initialize(self, timeout: int = 15):
+    def _initialize(self, timeout: int = 15) -> None:
+        """
+        发送 ACP 初始化握手。
+
+        Args:
+            timeout: 超时时间
+
+        Raises:
+            TimeoutError: 握手超时
+            RuntimeError: 握手失败
+        """
         req_id = "init-1"
         resp_q: Queue = Queue()
         with self._lock:
@@ -289,6 +432,19 @@ class OpenClawAgent:
             raise RuntimeError(f"initialize 失败: {resp['error']}")
 
     def _new_session(self, timeout: int = 30) -> str:
+        """
+        创建新会话。
+
+        Args:
+            timeout: 超时时间
+
+        Returns:
+            会话 ID
+
+        Raises:
+            TimeoutError: 会话创建超时
+            RuntimeError: 会话创建失败
+        """
         req_id = "sess-1"
         resp_q: Queue = Queue()
         with self._lock:
@@ -316,12 +472,14 @@ class OpenClawAgent:
             raise RuntimeError("session/new 未返回 sessionId")
         return session_id
 
-    def _write(self, obj: dict):
+    def _write(self, obj: dict) -> None:
+        """向子进程 stdin 写入 JSON-RPC 消息。"""
         line = json.dumps(obj, ensure_ascii=False) + "\n"
         self._proc.stdin.write(line)
         self._proc.stdin.flush()
 
-    def _read_stdout(self):
+    def _read_stdout(self) -> None:
+        """读取子进程 stdout，处理 JSON-RPC 响应和通知。"""
         for raw in self._proc.stdout:
             raw = raw.strip()
             if not raw:
@@ -340,19 +498,23 @@ class OpenClawAgent:
             else:
                 self._recv_queue.put(msg)
 
-    def _read_stderr(self):
+    def _read_stderr(self) -> None:
+        """读取子进程 stderr，记录日志。"""
         for line in self._proc.stderr:
             line = line.strip()
             if line:
                 print(f"[ACP stderr] {line}")
 
-    def __enter__(self):
+    def __enter__(self) -> "OpenClawAgent":
+        """上下文管理器入口，自动启动 Agent。"""
         self.start()
         return self
 
-    def __exit__(self, *_):
+    def __exit__(self, *_: None) -> None:
+        """上下文管理器出口，自动停止 Agent。"""
         self.stop()
 
-    def __del__(self):
+    def __del__(self) -> None:
+        """析构时自动停止 Agent。"""
         if hasattr(self, "_started"):
             self.stop()
