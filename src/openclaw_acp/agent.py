@@ -32,10 +32,17 @@ class OpenClawAgent:
         cwd: Optional[str] = None,
         auto_start: bool = True,
     ):
-        self.gateway_url = gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
+        self.gateway_url = (
+            gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
+        )
         print(self.gateway_url)
         self.agent = agent or "main"
-        self.cwd = cwd or "/home/node/.openclaw/workspace-{}".format(self.agent.replace("_", "-")).lower()
+        self.cwd = (
+            cwd
+            or "/home/node/.openclaw/workspace-{}".format(
+                self.agent.replace("_", "-")
+            ).lower()
+        )
 
         self._proc = None
         self._recv_queue = Queue()
