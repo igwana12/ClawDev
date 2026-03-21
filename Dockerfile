@@ -56,7 +56,7 @@ RUN set -eux && \
     npm install -g @tobilu/qmd
 
 # ── 安装 uv ──────────────────────────────────────────────────────
-RUN curl -LsSf https://uv.agentsmirror.com/install-cn.sh | UV_INSTALL_DIR=/usr/local/bin sh && \
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh && \
     uv --version
 
 ENV UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
