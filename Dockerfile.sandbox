@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1.7
+
+FROM debian:bookworm-slim@sha256:98f4b71de414932439ac6ac690d7060df1f27161073c5036a7553723881bffbe
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN printf "Types: deb\nURIs: http://mirrors.tuna.tsinghua.edu.cn/debian/\nSuites: bookworm bookworm-updates bookworm-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://mirrors.tuna.tsinghua.edu.cn/debian-security/\nSuites: bookworm-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n" > /etc/apt/sources.list.d/debian.sources
+RUN --mount=type=cache,id=openclaw-sandbox-bookworm-apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=openclaw-sandbox-bookworm-apt-lists,target=/var/lib/apt,sharing=locked \
+  apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN printf "Types: deb\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian/\nSuites: bookworm bookworm-updates bookworm-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security/\nSuites: bookworm-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n" > /etc/apt/sources.list.d/debian.sources
+RUN --mount=type=cache,id=openclaw-sandbox-bookworm-apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=openclaw-sandbox-bookworm-apt-lists,target=/var/lib/apt,sharing=locked \
+  apt-get update \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    curl \
+    git \
+    jq \
+    python3 \
+    ripgrep \
+    openssh-client
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --bin-dir /usr/local/bin
+
+ENV TEA_VERSION=0.12.0
+ENV TEA_ARCH=amd64
+
+RUN echo "Downloading tea v${TEA_VERSION}..." && \
+    curl -L -o /usr/local/bin/tea "https://gitea.com/gitea/tea/releases/download/v${TEA_VERSION}/tea-${TEA_VERSION}-linux-${TEA_ARCH}" && \
+    chmod +x /usr/local/bin/tea && \
+    tea --version
+
+RUN useradd --create-home --shell /bin/bash sandbox
+
+USER sandbox
+WORKDIR /home/sandbox
+
+CMD ["sleep", "infinity"]
