@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import os
 import subprocess
@@ -42,6 +43,7 @@ class OpenClawAgent:
                 self.agent.replace("_", "-")
             ).lower()
         )
+        self._session_suffix = hashlib.sha256(self.agent.encode()).hexdigest()[:12]
 
         self._proc = None
         self._recv_queue = Queue()
@@ -65,7 +67,8 @@ class OpenClawAgent:
             "--url",
             self.gateway_url,
             "--session",
-            f"agent:{self.agent}:main",
+            f"agent:{self.agent}:{self._session_suffix}",
+            "--reset-session",
         ]
 
         env = {
