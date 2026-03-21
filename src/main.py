@@ -6,4 +6,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     agent = OpenClawAgent(agent="programmer-a")
-    print(agent.step("hello from acp"))
+    while (user_input := input("User: ")) != "/exit":
+        response = agent.step(user_input)
+        print(f"Agent: {response}")
+    agent.stop()
