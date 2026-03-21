@@ -138,6 +138,87 @@ class TestOpenClawAgent:
         result = asyncio.run(run())
         assert result == "Async Hello"
 
+    def test_stream_yields_chunks(self):
+        with patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"}):
+            agent = OpenClawAgent(auto_start=False)
+            agent._proc = Mock()
+            agent._session_id = "test-session"
+            agent._lock = threading.Lock()
+            agent._recv_queue = Queue()
+
+        def put_responses():
+            import time
+
+            time.sleep(0.05)
+            resp_q = agent._pending.get("mock-id")
+            if resp_q:
+                resp_q.put({"result": {}})
+
+            time.sleep(0.1)
+            agent._recv_queue.put(
+                {
+                    "method": "session/update",
+                    "params": {
+                        "update": {
+                            "sessionUpdate": "agent_message_chunk",
+                            "content": {"type": "text", "text": "Hello "},
+                        }
+                    },
+                }
+            )
+
+            time.sleep(0.1)
+            agent._recv_queue.put(
+                {
+                    "method": "session/update",
+                    "params": {
+                        "update": {
+                            "sessionUpdate": "agent_message_chunk",
+                            "content": {"type": "text", "text": "World"},
+                        },
+                        "stopReason": "stop",
+                    },
+                }
+            )
+
+        threading.Thread(target=put_responses, daemon=True).start()
+
+        async def run():
+            chunks = []
+            with patch("openclaw_acp.agent.uuid.uuid4", return_value="mock-id"):
+                async for chunk in agent.stream("test", timeout=10):
+                    chunks.append(chunk)
+            return chunks
+
+        result = asyncio.run(run())
+        assert result == ["Hello ", "World"]
+
+    def test_stream_raises_on_error(self):
+        with patch.dict("os.environ", {"OPENCLAW_GATEWAY_TOKEN": "test_token"}):
+            agent = OpenClawAgent(auto_start=False)
+            agent._proc = Mock()
+            agent._session_id = "test-session"
+            agent._lock = threading.Lock()
+            agent._recv_queue = Queue()
+
+        def put_error():
+            import time
+
+            time.sleep(0.05)
+            resp_q = agent._pending.get("mock-id")
+            if resp_q:
+                resp_q.put({"error": {"message": "test error"}})
+
+        threading.Thread(target=put_error, daemon=True).start()
+
+        async def run():
+            with patch("openclaw_acp.agent.uuid.uuid4", return_value="mock-id"):
+                async for chunk in agent.stream("test", timeout=10):
+                    pass
+
+        with pytest.raises(RuntimeError, match="ACP error"):
+            asyncio.run(run())
+
 
 class TestOpenClawAgentRequiresApiKey:
     @patch.dict(os.environ, {}, clear=True)
