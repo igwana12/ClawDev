@@ -474,7 +474,7 @@ class OpenClawAgent:
         if "error" in resp:
             raise RuntimeError(f"initialize 失败: {resp['error']}")
 
-    def _new_session(self, timeout: int = 30) -> str:
+    def _new_session(self, timeout: int = 120) -> str:
         """
         创建新会话。
 
@@ -574,7 +574,7 @@ class OpenClawAgent:
             if line:
                 print(f"[ACP stderr] {line}")
 
-    def _send_initialization_message(self, timeout: int = 30) -> None:
+    def _send_initialization_message(self, timeout: int = 120) -> None:
         """
         发送初始化消息 "/new" 并存储响应。
 
