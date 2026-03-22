@@ -36,7 +36,7 @@ class CodeReviewCommentPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Store review comments in environment
         env.review_comments = response
@@ -71,7 +71,7 @@ class CodeReviewModificationPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Parse modified code from response and update environment
         # This would involve extracting code blocks from the response

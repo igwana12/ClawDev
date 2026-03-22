@@ -36,7 +36,7 @@ class CodingPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Parse code from response and update environment
         # This would involve extracting code blocks from the response
@@ -73,7 +73,7 @@ class CodeCompletePhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Parse code from response and update environment
         # This would involve extracting code blocks from the response

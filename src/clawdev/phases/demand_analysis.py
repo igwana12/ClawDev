@@ -37,7 +37,7 @@ class DemandAnalysisPhase(Phase):
         print(f"DemandAnalysisPhase: Rendered prompt: {prompt[:100]}...")
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
         print(f"DemandAnalysisPhase: Received response: {response[:100]}...")
 
         # Update environment with agent response

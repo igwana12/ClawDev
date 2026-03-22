@@ -36,7 +36,7 @@ class TestErrorSummaryPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Store error summary in environment
         env.error_summary = response
@@ -71,7 +71,7 @@ class TestModificationPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Parse fixed code from response and update environment
         # This would involve extracting code blocks from the response

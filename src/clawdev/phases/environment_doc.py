@@ -36,7 +36,7 @@ class EnvironmentDocPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Store requirements in environment
         env.requirements = response
@@ -71,7 +71,7 @@ class ManualPhase(Phase):
         prompt = self.render_prompt(env)
 
         # Send prompt to agent and get response
-        response = agent_adapter.send(prompt)
+        response = agent_adapter.send(prompt, role=self.assistant_role)
 
         # Store manual in environment
         env.manuals = response
