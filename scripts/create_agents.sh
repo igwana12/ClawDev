@@ -6,6 +6,7 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Function to print colored output
@@ -21,10 +22,66 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+print_question() {
+    echo -e "${BLUE}[QUESTION]${NC} $1"
+}
+
+# Function to ask user for confirmation
+confirm() {
+    local prompt="$1"
+    while true; do
+        print_question "$prompt (y/n): "
+        read -r answer
+        case $answer in
+            [Yy]* ) return 0 ;;
+            [Nn]* ) return 1 ;;
+            * ) echo "Please answer yes or no." ;;
+        esac
+    done
+}
+
+# Function to check if agent already exists
+agent_exists() {
+    local agent_name="$1"
+    # Check if agent exists by trying to list it
+    if openclaw agents list | grep -q "^$agent_name$"; then
+        return 0  # Agent exists
+    else
+        return 1  # Agent does not exist
+    fi
+}
+
+# Function to remove existing agent
+remove_agent() {
+    local agent_name="$1"
+    print_status "Removing existing agent: $agent_name"
+    if openclaw agents remove "$agent_name"; then
+        print_status "Successfully removed agent: $agent_name"
+        return 0
+    else
+        print_error "Failed to remove agent: $agent_name"
+        return 1
+    fi
+}
+
 # Function to create an OpenClaw agent
 create_agent() {
     local agent_name="$1"
-    print_status "Creating agent: $agent_name"
+    print_status "Processing agent: $agent_name"
+    
+    # Check if agent already exists
+    if agent_exists "$agent_name"; then
+        print_warning "Agent '$agent_name' already exists."
+        if confirm "Do you want to remove the existing agent and create a new one"; then
+            if ! remove_agent "$agent_name"; then
+                print_error "Failed to remove existing agent. Skipping creation."
+                return 1
+            fi
+        else
+            print_status "Skipping creation of agent: $agent_name"
+            return 0
+        fi
+    fi
     
     # Create workspace directory
     local workspace_dir="/home/anzz/.openclaw/workspace-${agent_name,,}"
@@ -60,20 +117,32 @@ main() {
     
     local success_count=0
     local total_agents=${#agents[@]}
+    local skipped_count=0
     
     for agent_name in "${agents[@]}"; do
         if create_agent "$agent_name"; then
-            ((success_count++))
+            # Check if agent was actually created or skipped
+            if agent_exists "$agent_name"; then
+                ((success_count++))
+            else
+                ((skipped_count++))
+            fi
         fi
     done
     
-    print_status "Created $success_count/$total_agents agents successfully."
+    print_status "Agent creation process completed."
+    print_status "Successfully created: $success_count"
+    print_status "Skipped: $skipped_count"
+    print_status "Total processed: $((success_count + skipped_count))/$total_agents"
     
     if [[ $success_count -eq $total_agents ]]; then
         print_status "All agents created successfully!"
         return 0
+    elif [[ $((success_count + skipped_count)) -eq $total_agents ]]; then
+        print_status "All agents processed (some skipped by user choice)."
+        return 0
     else
-        print_error "Some agents failed to create."
+        print_error "Some agents failed to process."
         return 1
     fi
 }
