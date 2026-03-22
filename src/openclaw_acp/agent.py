@@ -347,9 +347,56 @@ class OpenClawAgent:
 
         req_id = str(uuid.uuid4())
         resp_q: Queue = Queue()
+        chunks_q: Queue = Queue()
 
         with self._pending_lock:
             self._pending[req_id] = resp_q
+
+            def _collect():
+                resp_done = False
+                while True:
+                    if not resp_done:
+                        try:
+                            resp = resp_q.get_nowait()
+                            resp_done = True
+                            if "error" in resp:
+                                chunks_q.put(("error", resp["error"]))
+                                return
+                            result = resp.get("result", {})
+                            if result.get("stopReason"):
+                                chunks_q.put(("done", None))
+                                return
+                            logger.debug(
+                                "[%s] _collect() got resp",
+                                req_id,
+                            )
+                        except Empty:
+                            pass
+
+                    try:
+                        msg = self._recv_queue.get(timeout=0.05)
+                    except Empty:
+                        continue
+
+                    method = msg.get("method")
+                    if method == "session/update":
+                        params = msg.get("params", {})
+                        update = params.get("update", {})
+                        if update.get("sessionUpdate") == "agent_message_chunk":
+                            content = update.get("content", {})
+                            if content.get("type") == "text":
+                                chunks_q.put(("chunk", content.get("text", "")))
+                        for part in params.get("parts", []):
+                            if part.get("type") == "text":
+                                chunks_q.put(("chunk", part.get("text", "")))
+                        if params.get("stopReason"):
+                            chunks_q.put(("done", None))
+                            return
+                    elif method == "session/error":
+                        chunks_q.put(("error", msg.get("params")))
+                        return
+
+        threading.Thread(target=_collect, daemon=True).start()
 
         self._write(
             {
@@ -363,51 +410,24 @@ class OpenClawAgent:
             }
         )
 
-        try:
-            resp = resp_q.get(timeout=timeout)
-            logger.debug(
-                "[%s] _stream_internal() received final response, stopReason=%s",
-                req_id,
-                resp.get("result", {}).get("stopReason"),
-            )
-        except Empty:
-            raise TimeoutError(f"等待 session/prompt 响应超时（{timeout}s）")
-
-        if "error" in resp:
-            raise RuntimeError(f"[ACP error] {resp['error']}")
-
-        logger.debug(
-            "[%s] _stream_internal() draining recv_queue, size≈%d",
-            req_id,
-            self._recv_queue.qsize(),
-        )
+        deadline = time.time() + timeout
         while True:
+            remaining = deadline - time.time()
+            if remaining <= 0:
+                raise TimeoutError(f"等待响应超时（{timeout}s）")
+
             try:
-                msg = self._recv_queue.get(timeout=0.1)
-                logger.debug(
-                    "[%s] _stream_internal() drained msg method=%s update=%s",
-                    req_id,
-                    msg.get("method"),
-                    msg.get("params", {}).get("update", {}).get("sessionUpdate"),
-                )
-                method = msg.get("method")
-                if method == "session/update":
-                    params = msg.get("params", {})
-                    update = params.get("update", {})
-                    if update.get("sessionUpdate") == "agent_message_chunk":
-                        content = update.get("content", {})
-                        if content.get("type") == "text":
-                            yield content.get("text", "")
-                    for part in params.get("parts", []):
-                        if part.get("type") == "text":
-                            yield part.get("text", "")
-                    if params.get("stopReason"):
-                        break
-                elif method == "session/error":
-                    raise RuntimeError(f"[session error] {msg.get('params')}")
+                item = chunks_q.get(timeout=min(remaining, 0.1))
             except Empty:
-                logger.debug("[%s] _stream_internal() drain done", req_id)
+                continue
+
+            kind, data = item
+            if kind == "error":
+                raise RuntimeError(f"[ACP error] {data}")
+            elif kind == "done":
                 break
+            else:
+                yield data
 
     def _initialize(self, timeout: int = 60) -> None:
         """
