@@ -35,9 +35,9 @@ get_user_input() {
     local user_input
     
     if [[ -n "$default_value" ]]; then
-        print_question "$prompt (default: $default_value): "
+        print_question "$prompt (default: $default_value): " >&2
     else
-        print_question "$prompt: "
+        print_question "$prompt: " >&2
     fi
     
     read -r user_input
@@ -58,9 +58,9 @@ confirm() {
     
     while true; do
         if [[ "$default" == "y" ]]; then
-            print_question "$prompt (Y/n): "
+            print_question "$prompt (Y/n): " >&2
         else
-            print_question "$prompt (y/N): "
+            print_question "$prompt (y/N): " >&2
         fi
         
         read -r answer
@@ -73,7 +73,7 @@ confirm() {
         case $answer in
             [Yy]* ) return 0 ;;
             [Nn]* ) return 1 ;;
-            * ) echo "Please answer yes or no." ;;
+            * ) echo "Please answer yes or no." >&2 ;;
         esac
     done
 }
@@ -83,7 +83,7 @@ get_openclaw_config_dir() {
     local config_dir
     
     # Check if OPENCLAW_CONFIG_HOST environment variable is set and not empty
-    if [[ -n "${OPENCLAW_CONFIG_HOST}" ]]; then
+    if [[ -n "${OPENCLAW_CONFIG_HOST:-}" ]]; then
         config_dir="${OPENCLAW_CONFIG_HOST}"
         print_status "Using OpenClaw config directory from environment variable: $config_dir"
     else
@@ -182,7 +182,7 @@ deploy_configurations() {
                 local filename=$(basename "$file")
                 print_status "Copying $filename to $target_dir"
                 if cp "$file" "$target_dir/"; then
-                    ((files_copied++))
+                    files_copied=$((files_copied + 1))
                 else
                     print_error "Failed to copy $filename"
                 fi
@@ -193,8 +193,8 @@ deploy_configurations() {
         if [[ -d "$source_dir/skills" ]]; then
             print_status "Copying skills directory to $target_dir"
             if cp -r "$source_dir/skills" "$target_dir/"; then
-                ((files_copied++))
-            else
+                    files_copied=$((files_copied + 1))
+                else
                 print_error "Failed to copy skills directory"
             fi
         fi
@@ -203,7 +203,7 @@ deploy_configurations() {
         copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir/skills"
         
         if [[ $files_copied -gt 0 ]]; then
-            ((success_count++))
+            success_count=$((success_count + 1))
             print_status "Successfully deployed configuration for agent: $agent"
         else
             print_warning "No files copied for agent: $agent"
@@ -317,43 +317,6 @@ agent_config_exists() {
         return 1  # Agent configuration does not exist
     fi
 }
-
-# Main function
-main() {
-    print_status "ClawDev Agent Configuration Deployment Script"
-    
-    # Get OpenClaw configuration directory
-    local openclaw_config_dir
-    openclaw_config_dir=$(get_openclaw_config_dir)
-    if [[ $? -ne 0 ]]; then
-        print_error "Failed to get OpenClaw configuration directory"
-        return 1
-    fi
-    
-    # Get configuration name
-    local config_name
-    config_name=$(get_config_name)
-    if [[ $? -ne 0 ]]; then
-        print_error "Failed to get configuration name"
-        return 1
-    fi
-    
-    # Warn user about potential configuration overwrite
-    print_warning "This will deploy configurations from 'configs/$config_name' to '$openclaw_config_dir'"
-    print_warning "Existing configurations may be overwritten!"
-    
-    # Ask for confirmation
-    if ! confirm "Do you want to continue with the deployment" "n"; then
-        print_status "Deployment cancelled by user."
-        return 0
-    fi
-    
-    # Deploy configurations
-    deploy_configurations "$openclaw_config_dir" "$config_name"
-}
-
-# Run main function
-main
 
 # Main function
 main() {

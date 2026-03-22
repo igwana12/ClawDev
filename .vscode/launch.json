@@ -12,7 +12,8 @@
             "program": "src/main.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": ["使用Python写一个计算器程序，需要支持加减乘除基本运算，可以从命令行输入表达式并输出结果，支持小数和负数运算，代码要清晰易读，包含适当的错误处理"]
         }
     ]
 }
