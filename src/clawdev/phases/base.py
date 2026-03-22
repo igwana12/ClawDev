@@ -5,6 +5,7 @@ Defines the abstract interface and common functionality for all development phas
 """
 
 from abc import ABC, abstractmethod
+import re
 from typing import Dict, Any, List
 from ..env.env import ChatEnv
 
@@ -53,21 +54,33 @@ class Phase(ABC):
         prompt_template = "\n".join(self.phase_prompt)
 
         # Replace placeholders with actual values from environment
-        prompt = prompt_template.format(
-            task=env.task_prompt,
-            modality=env.modality,
-            language=env.language,
-            ideas=env.ideas,
-            codes=env.get_codes(),
-            requirements=env.requirements,
-            comments=env.review_comments,
-            test_reports=env.test_reports,
-            error_summary=env.error_summary,
-            images=env.images,
-            unimplemented_file=env.unimplemented_file,
-            description=env.description,
-            gui=env.gui,  # This would be set based on config
-        )
+        try:
+            prompt = prompt_template.format(
+                task=env.task_prompt,
+                modality=env.modality,
+                language=env.language,
+                ideas=env.ideas,
+                codes=env.get_codes(),
+                requirements=env.requirements,
+                comments=env.review_comments,
+                test_reports=env.test_reports,
+                error_summary=env.error_summary,
+                images=env.images,
+                unimplemented_file=env.unimplemented_file,
+                description=env.description,
+                gui=env.gui,  # This would be set based on config
+                assistant_role=self.assistant_role,
+                user_role=self.user_role,
+            )
+        except KeyError as e:
+            print(f"KeyError in render_prompt: {e}")
+            print(
+                f"Available keys in template: {set(re.findall(r'\{(\w+)\}', prompt_template))}"
+            )
+            print(
+                f"Environment state: task_prompt={env.task_prompt}, modality={env.modality}, language={env.language}"
+            )
+            raise
 
         return prompt
 
@@ -81,6 +94,7 @@ class Phase(ABC):
         """
         # Default implementation - can be overridden by subclasses
         # Look for <INFO> markers in response
+        print(f"update_env: response={response}")
         if "<INFO>" in response:
             info_start = response.find("<INFO>") + 6  # Length of "<INFO>"
             info_end = response.find("\n", info_start)
@@ -88,10 +102,21 @@ class Phase(ABC):
                 info_end = len(response)
 
             info_content = response[info_start:info_end].strip()
+            print(f"update_env: info_content={info_content}")
 
             # Update environment based on phase type
-            if self.phase_name == "DemandAnalysis":
+            if (
+                self.phase_name == "DemandAnalysis"
+                or self.phase_name == "DemandAnalysisPhase"
+            ):
+                print(f"update_env: Setting env.modality to {info_content}")
                 env.modality = info_content
-            elif self.phase_name == "LanguageChoose":
+                print(f"update_env: env.modality is now {env.modality}")
+            elif (
+                self.phase_name == "LanguageChoose"
+                or self.phase_name == "LanguageChoosePhase"
+            ):
+                print(f"update_env: Setting env.language to {info_content}")
                 env.language = info_content
+                print(f"update_env: env.language is now {env.language}")
             # Other phase-specific updates would go here

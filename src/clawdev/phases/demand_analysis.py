@@ -34,11 +34,16 @@ class DemandAnalysisPhase(Phase):
         """
         # Render prompt for this phase
         prompt = self.render_prompt(env)
+        print(f"DemandAnalysisPhase: Rendered prompt: {prompt[:100]}...")
 
         # Send prompt to agent and get response
         response = agent_adapter.send(prompt)
+        print(f"DemandAnalysisPhase: Received response: {response[:100]}...")
 
         # Update environment with agent response
+        print("DemandAnalysisPhase: Updating environment...")
+        print(f"DemandAnalysisPhase: self.phase_name = {self.phase_name}")
         self.update_env(env, response)
+        print(f"DemandAnalysisPhase: Updated environment modality: {env.modality}")
 
         return env

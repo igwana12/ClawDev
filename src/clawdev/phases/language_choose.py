@@ -34,11 +34,16 @@ class LanguageChoosePhase(Phase):
         """
         # Render prompt for this phase
         prompt = self.render_prompt(env)
+        print(f"LanguageChoosePhase: Rendered prompt: {prompt[:100]}...")
 
         # Send prompt to agent and get response
         response = agent_adapter.send(prompt)
+        print(f"LanguageChoosePhase: Received response: {response[:100]}...")
 
         # Update environment with agent response
+        print("LanguageChoosePhase: Updating environment...")
+        print(f"LanguageChoosePhase: self.phase_name = {self.phase_name}")
         self.update_env(env, response)
+        print(f"LanguageChoosePhase: Updated environment language: {env.language}")
 
         return env
