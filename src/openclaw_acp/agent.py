@@ -347,20 +347,6 @@ class OpenClawAgent:
     def _stream_internal(
         self, message: str, timeout: int = 120
     ) -> Generator[str, None, None]:
-        """
-        内部流式处理函数。
-
-        Args:
-            message: 发送的消息
-            timeout: 超时时间
-
-        Yields:
-            响应文本片段
-
-        Raises:
-            RuntimeError: Agent 未启动或发生错误
-            TimeoutError: 等待响应超时
-        """
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
@@ -384,33 +370,49 @@ class OpenClawAgent:
 
         try:
             resp = resp_q.get(timeout=timeout)
+            logger.debug(
+                "[%s] _stream_internal() received final response, stopReason=%s",
+                req_id,
+                resp.get("result", {}).get("stopReason"),
+            )
         except Empty:
             raise TimeoutError(f"等待 session/prompt 响应超时（{timeout}s）")
 
         if "error" in resp:
             raise RuntimeError(f"[ACP error] {resp['error']}")
 
+        logger.debug(
+            "[%s] _stream_internal() draining recv_queue, size≈%d",
+            req_id,
+            self._recv_queue.qsize(),
+        )
         while True:
             try:
-                msg = self._recv_queue.get(timeout=30)
+                msg = self._recv_queue.get(timeout=0.1)
+                logger.debug(
+                    "[%s] _stream_internal() drained msg method=%s update=%s",
+                    req_id,
+                    msg.get("method"),
+                    msg.get("params", {}).get("update", {}).get("sessionUpdate"),
+                )
+                method = msg.get("method")
+                if method == "session/update":
+                    params = msg.get("params", {})
+                    update = params.get("update", {})
+                    if update.get("sessionUpdate") == "agent_message_chunk":
+                        content = update.get("content", {})
+                        if content.get("type") == "text":
+                            yield content.get("text", "")
+                    for part in params.get("parts", []):
+                        if part.get("type") == "text":
+                            yield part.get("text", "")
+                    if params.get("stopReason"):
+                        break
+                elif method == "session/error":
+                    raise RuntimeError(f"[session error] {msg.get('params')}")
             except Empty:
+                logger.debug("[%s] _stream_internal() drain done", req_id)
                 break
-
-            method = msg.get("method")
-            if method == "session/update":
-                params = msg.get("params", {})
-                update = params.get("update", {})
-                if update.get("sessionUpdate") == "agent_message_chunk":
-                    content = update.get("content", {})
-                    if content.get("type") == "text":
-                        yield content.get("text", "")
-                for part in params.get("parts", []):
-                    if part.get("type") == "text":
-                        yield part.get("text", "")
-                if params.get("stopReason"):
-                    break
-            elif method == "session/error":
-                raise RuntimeError(f"[session error] {msg.get('params')}")
 
     def _initialize(self, timeout: int = 60) -> None:
         """
@@ -488,6 +490,15 @@ class OpenClawAgent:
         session_id = resp.get("result", {}).get("sessionId")
         if not session_id:
             raise RuntimeError("session/new 未返回 sessionId")
+
+        flushed = 0
+        while True:
+            try:
+                self._recv_queue.get_nowait()
+                flushed += 1
+            except Empty:
+                break
+        logger.debug("_new_session() flushed %d leftover notifications", flushed)
         return session_id
 
     def _write(self, obj: dict) -> None:
