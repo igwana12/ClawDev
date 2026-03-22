@@ -35,6 +35,6 @@
       }
     }
   },
-  "postCreateCommand": "cd /app/ClawDev && uv sync",
+  "postCreateCommand": "cd /app/ClawDev && uv sync --dev",
   "remoteUser": "node"
 }

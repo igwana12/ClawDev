@@ -7,12 +7,14 @@ from openclaw_acp.utils import require_api_key
 
 class TestRequireApiKey:
     def test_raises_when_no_api_key(self):
-        @require_api_key("OPENCLAW_GATEWAY_TOKEN")
-        def dummy_func(openclaw_gateway_token=None):
-            return "success"
+        with patch.dict(os.environ, {}, clear=True):
 
-        with pytest.raises(ValueError, match="API key 'OPENCLAW_GATEWAY_TOKEN'"):
-            dummy_func()
+            @require_api_key("OPENCLAW_GATEWAY_TOKEN")
+            def dummy_func(openclaw_gateway_token=None):
+                return "success"
+
+            with pytest.raises(ValueError, match="API key 'OPENCLAW_GATEWAY_TOKEN'"):
+                dummy_func()
 
     def test_passes_when_api_key_in_kwargs(self):
         @require_api_key("OPENCLAW_GATEWAY_TOKEN")

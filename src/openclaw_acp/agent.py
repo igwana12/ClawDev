@@ -93,12 +93,7 @@ class OpenClawAgent:
             gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
         )
         self.agent = agent or "main"
-        self.cwd = (
-            cwd
-            or "/home/node/.openclaw/workspace-{}".format(
-                self.agent.replace("_", "-")
-            ).lower()
-        )
+        self.cwd = cwd or "/workspace"
         self._session_suffix = hashlib.sha256(self.agent.encode()).hexdigest()[:12]
 
         self._proc: Optional[subprocess.Popen] = None
@@ -106,9 +101,13 @@ class OpenClawAgent:
         self._pending: dict[str, Queue] = {}
         self._session_id: Optional[str] = None
         self._lock: threading.Lock = threading.Lock()
+        self._pending_lock: threading.Lock = threading.Lock()
         self._started: bool = False
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
+        self._initialization_response: Optional[str] = (
+            None  # Store the response to /new command
+        )
 
         if auto_start:
             self.start()
@@ -122,6 +121,7 @@ class OpenClawAgent:
         2. 启动 stdout/stderr 读取线程
         3. 发送 initialize 握手
         4. 创建新会话
+        5. 发送初始化消息 "/new"
 
         Raises:
             TimeoutError: 握手或会话创建超时
@@ -166,6 +166,10 @@ class OpenClawAgent:
 
             self._initialize()
             self._session_id = self._new_session()
+
+            # Send initialization message "/new" and store the response
+            self._send_initialization_message()
+
             self._started = True
 
     def stop(self) -> None:
@@ -221,7 +225,7 @@ class OpenClawAgent:
         req_id = str(uuid.uuid4())
         resp_q: Queue = Queue()
 
-        with self._lock:
+        with self._pending_lock:
             self._pending[req_id] = resp_q
 
         logger.debug("[%s] step() sending prompt, message=%r", req_id, message[:100])
@@ -346,28 +350,61 @@ class OpenClawAgent:
     def _stream_internal(
         self, message: str, timeout: int = 120
     ) -> Generator[str, None, None]:
-        """
-        内部流式处理函数。
-
-        Args:
-            message: 发送的消息
-            timeout: 超时时间
-
-        Yields:
-            响应文本片段
-
-        Raises:
-            RuntimeError: Agent 未启动或发生错误
-            TimeoutError: 等待响应超时
-        """
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
         req_id = str(uuid.uuid4())
         resp_q: Queue = Queue()
+        chunks_q: Queue = Queue()
 
-        with self._lock:
+        with self._pending_lock:
             self._pending[req_id] = resp_q
+
+            def _collect():
+                resp_done = False
+                while True:
+                    if not resp_done:
+                        try:
+                            resp = resp_q.get_nowait()
+                            resp_done = True
+                            if "error" in resp:
+                                chunks_q.put(("error", resp["error"]))
+                                return
+                            result = resp.get("result", {})
+                            if result.get("stopReason"):
+                                chunks_q.put(("done", None))
+                                return
+                            logger.debug(
+                                "[%s] _collect() got resp",
+                                req_id,
+                            )
+                        except Empty:
+                            pass
+
+                    try:
+                        msg = self._recv_queue.get(timeout=0.05)
+                    except Empty:
+                        continue
+
+                    method = msg.get("method")
+                    if method == "session/update":
+                        params = msg.get("params", {})
+                        update = params.get("update", {})
+                        if update.get("sessionUpdate") == "agent_message_chunk":
+                            content = update.get("content", {})
+                            if content.get("type") == "text":
+                                chunks_q.put(("chunk", content.get("text", "")))
+                        for part in params.get("parts", []):
+                            if part.get("type") == "text":
+                                chunks_q.put(("chunk", part.get("text", "")))
+                        if params.get("stopReason"):
+                            chunks_q.put(("done", None))
+                            return
+                    elif method == "session/error":
+                        chunks_q.put(("error", msg.get("params")))
+                        return
+
+        threading.Thread(target=_collect, daemon=True).start()
 
         self._write(
             {
@@ -381,35 +418,24 @@ class OpenClawAgent:
             }
         )
 
-        try:
-            resp = resp_q.get(timeout=timeout)
-        except Empty:
-            raise TimeoutError(f"等待 session/prompt 响应超时（{timeout}s）")
-
-        if "error" in resp:
-            raise RuntimeError(f"[ACP error] {resp['error']}")
-
+        deadline = time.time() + timeout
         while True:
-            try:
-                msg = self._recv_queue.get(timeout=30)
-            except Empty:
-                break
+            remaining = deadline - time.time()
+            if remaining <= 0:
+                raise TimeoutError(f"等待响应超时（{timeout}s）")
 
-            method = msg.get("method")
-            if method == "session/update":
-                params = msg.get("params", {})
-                update = params.get("update", {})
-                if update.get("sessionUpdate") == "agent_message_chunk":
-                    content = update.get("content", {})
-                    if content.get("type") == "text":
-                        yield content.get("text", "")
-                for part in params.get("parts", []):
-                    if part.get("type") == "text":
-                        yield part.get("text", "")
-                if params.get("stopReason"):
-                    break
-            elif method == "session/error":
-                raise RuntimeError(f"[session error] {msg.get('params')}")
+            try:
+                item = chunks_q.get(timeout=min(remaining, 0.1))
+            except Empty:
+                continue
+
+            kind, data = item
+            if kind == "error":
+                raise RuntimeError(f"[ACP error] {data}")
+            elif kind == "done":
+                break
+            else:
+                yield data
 
     def _initialize(self, timeout: int = 60) -> None:
         """
@@ -424,7 +450,8 @@ class OpenClawAgent:
         """
         req_id = "init-1"
         resp_q: Queue = Queue()
-        self._pending[req_id] = resp_q
+        with self._pending_lock:
+            self._pending[req_id] = resp_q
 
         self._write(
             {
@@ -463,7 +490,8 @@ class OpenClawAgent:
         """
         req_id = "sess-1"
         resp_q: Queue = Queue()
-        self._pending[req_id] = resp_q
+        with self._pending_lock:
+            self._pending[req_id] = resp_q
 
         self._write(
             {
@@ -485,12 +513,26 @@ class OpenClawAgent:
         session_id = resp.get("result", {}).get("sessionId")
         if not session_id:
             raise RuntimeError("session/new 未返回 sessionId")
+
+        flushed = 0
+        while True:
+            try:
+                self._recv_queue.get_nowait()
+                flushed += 1
+            except Empty:
+                break
+        logger.debug("_new_session() flushed %d leftover notifications", flushed)
         return session_id
 
     def _write(self, obj: dict) -> None:
         """向子进程 stdin 写入 JSON-RPC 消息。"""
         line = json.dumps(obj, ensure_ascii=False) + "\n"
-        logger.debug("_write() id=%s method=%s", obj.get("id"), obj.get("method"))
+        logger.debug(
+            ">>> SEND id=%s method=%s body=%s",
+            obj.get("id"),
+            obj.get("method"),
+            json.dumps(obj, ensure_ascii=False),
+        )
         self._proc.stdin.write(line)
         self._proc.stdin.flush()
 
@@ -507,14 +549,22 @@ class OpenClawAgent:
 
             msg_id = msg.get("id")
             if msg_id is not None:
-                logger.debug("_read_stdout() got response id=%s", msg_id)
-                with self._lock:
+                logger.debug(
+                    "<<< RECV id=%s body=%s",
+                    msg_id,
+                    json.dumps(msg, ensure_ascii=False),
+                )
+                with self._pending_lock:
                     q = self._pending.pop(msg_id, None)
                 if q:
                     q.put(msg)
             else:
                 method = msg.get("method", "unknown")
-                logger.debug("_read_stdout() got notification method=%s", method)
+                logger.debug(
+                    "<<< RECV method=%s body=%s",
+                    method,
+                    json.dumps(msg, ensure_ascii=False),
+                )
                 self._recv_queue.put(msg)
 
     def _read_stderr(self) -> None:
@@ -523,6 +573,27 @@ class OpenClawAgent:
             line = line.strip()
             if line:
                 print(f"[ACP stderr] {line}")
+
+    def _send_initialization_message(self, timeout: int = 30) -> None:
+        """
+        发送初始化消息 "/new" 并存储响应。
+
+        Args:
+            timeout: 超时时间（秒）
+        """
+        if not self._proc or not self._session_id:
+            raise RuntimeError("请先调用 start()")
+
+        try:
+            logger.debug("Sending initialization message: /new")
+            response = self.step("/new", timeout=timeout)
+            self._initialization_response = response
+            logger.debug(
+                "Initialization response: %s", response[:100] if response else "None"
+            )
+        except Exception as e:
+            logger.warning("Failed to send initialization message: %s", e)
+            self._initialization_response = None
 
     def __enter__(self) -> "OpenClawAgent":
         """上下文管理器入口，自动启动 Agent。"""
@@ -537,3 +608,13 @@ class OpenClawAgent:
         """析构时自动停止 Agent。"""
         if hasattr(self, "_started"):
             self.stop()
+
+    @property
+    def initialization_response(self) -> Optional[str]:
+        """
+        获取初始化消息 "/new" 的响应。
+
+        Returns:
+            初始化响应文本，如果未发送或失败则返回 None
+        """
+        return self._initialization_response
