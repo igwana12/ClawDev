@@ -490,6 +490,7 @@ class OpenClawAgent:
     def _write(self, obj: dict) -> None:
         """向子进程 stdin 写入 JSON-RPC 消息。"""
         line = json.dumps(obj, ensure_ascii=False) + "\n"
+        logger.debug("_write() id=%s method=%s", obj.get("id"), obj.get("method"))
         self._proc.stdin.write(line)
         self._proc.stdin.flush()
 
@@ -506,11 +507,14 @@ class OpenClawAgent:
 
             msg_id = msg.get("id")
             if msg_id is not None:
+                logger.debug("_read_stdout() got response id=%s", msg_id)
                 with self._lock:
                     q = self._pending.pop(msg_id, None)
                 if q:
                     q.put(msg)
             else:
+                method = msg.get("method", "unknown")
+                logger.debug("_read_stdout() got notification method=%s", method)
                 self._recv_queue.put(msg)
 
     def _read_stderr(self) -> None:
