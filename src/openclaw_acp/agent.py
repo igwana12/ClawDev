@@ -106,6 +106,7 @@ class OpenClawAgent:
         self._pending: dict[str, Queue] = {}
         self._session_id: Optional[str] = None
         self._lock: threading.Lock = threading.Lock()
+        self._pending_lock: threading.Lock = threading.Lock()
         self._started: bool = False
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
@@ -221,7 +222,7 @@ class OpenClawAgent:
         req_id = str(uuid.uuid4())
         resp_q: Queue = Queue()
 
-        with self._lock:
+        with self._pending_lock:
             self._pending[req_id] = resp_q
 
         logger.debug("[%s] step() sending prompt, message=%r", req_id, message[:100])
@@ -366,7 +367,7 @@ class OpenClawAgent:
         req_id = str(uuid.uuid4())
         resp_q: Queue = Queue()
 
-        with self._lock:
+        with self._pending_lock:
             self._pending[req_id] = resp_q
 
         self._write(
@@ -424,7 +425,8 @@ class OpenClawAgent:
         """
         req_id = "init-1"
         resp_q: Queue = Queue()
-        self._pending[req_id] = resp_q
+        with self._pending_lock:
+            self._pending[req_id] = resp_q
 
         self._write(
             {
@@ -463,7 +465,8 @@ class OpenClawAgent:
         """
         req_id = "sess-1"
         resp_q: Queue = Queue()
-        self._pending[req_id] = resp_q
+        with self._pending_lock:
+            self._pending[req_id] = resp_q
 
         self._write(
             {
@@ -490,7 +493,12 @@ class OpenClawAgent:
     def _write(self, obj: dict) -> None:
         """向子进程 stdin 写入 JSON-RPC 消息。"""
         line = json.dumps(obj, ensure_ascii=False) + "\n"
-        logger.debug("_write() id=%s method=%s", obj.get("id"), obj.get("method"))
+        logger.debug(
+            ">>> SEND id=%s method=%s body=%s",
+            obj.get("id"),
+            obj.get("method"),
+            json.dumps(obj, ensure_ascii=False),
+        )
         self._proc.stdin.write(line)
         self._proc.stdin.flush()
 
@@ -507,14 +515,22 @@ class OpenClawAgent:
 
             msg_id = msg.get("id")
             if msg_id is not None:
-                logger.debug("_read_stdout() got response id=%s", msg_id)
-                with self._lock:
+                logger.debug(
+                    "<<< RECV id=%s body=%s",
+                    msg_id,
+                    json.dumps(msg, ensure_ascii=False),
+                )
+                with self._pending_lock:
                     q = self._pending.pop(msg_id, None)
                 if q:
                     q.put(msg)
             else:
                 method = msg.get("method", "unknown")
-                logger.debug("_read_stdout() got notification method=%s", method)
+                logger.debug(
+                    "<<< RECV method=%s body=%s",
+                    method,
+                    json.dumps(msg, ensure_ascii=False),
+                )
                 self._recv_queue.put(msg)
 
     def _read_stderr(self) -> None:
