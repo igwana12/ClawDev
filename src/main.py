@@ -1,6 +1,15 @@
 import asyncio
+import logging
+import sys
 from dotenv import load_dotenv
 from openclaw_acp import OpenClawAgent
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout,
+)
+logger = logging.getLogger("openclaw_acp.agent")
 
 
 async def main():
