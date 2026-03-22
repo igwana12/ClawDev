@@ -182,3 +182,68 @@ asyncio.run(main())
 - The agent communicates over WebSocket using JSON-RPC 2.0 protocol
 - When modifying the agent, ensure proper session and request ID handling
 - Test changes with actual OpenClaw gateway when possible
+
+## OpenClaw ACP Protocol
+
+### JSON-RPC 2.0 Message Format
+```json
+{
+    "jsonrpc": "2.0",
+    "id": "unique-request-id",
+    "method": "session/prompt",
+    "params": {
+        "sessionId": "session-id",
+        "prompt": [{"type": "text", "text": "message content"}]
+    }
+}
+```
+
+### Available Methods
+- `initialize`: Initialize connection with gateway
+- `session/new`: Create new session
+- `session/prompt`: Send prompt to agent
+
+### Agent Session
+- Each OpenClawAgent creates a unique session with format: `agent:{agent_name}:{session_suffix}`
+- The `cwd` parameter determines the agent's working directory
+- Default workspace: `~/.openclaw/workspace-{agent_name}`
+
+### Conversation History
+- OpenClaw ACP is one-way message passing (prompt -> response)
+- To maintain conversation history, inject history into the prompt text
+- Example pattern:
+```python
+history_text = "\n".join([f"[{i}] {msg}" for i, msg in enumerate(history)])
+prompt = f"[History]\n{history_text}\n\n[Current]: {new_message}"
+```
+
+## ClawDev Phase System
+
+### Phase Configuration
+Each phase in `configs/default/PhaseConfig.json` specifies:
+- `assistant_role_name`: The agent role that responds
+- `user_role_name`: The agent role that initiated the request
+- `phase_prompt`: Template for generating prompts
+
+### Agent Adapter
+- `AgentAdapter` maps role names to OpenClaw agent names
+- The `send(message, role)` method routes messages to the correct agent
+- Each agent gets its own working directory based on `OPENCLAW_CONFIG_HOST`
+
+### Agent Role Mapping
+| Role | Agent Name | Workspace |
+|------|------------|----------|
+| Chief Executive Officer | chief_executive_officer | workspace-chief_executive_officer |
+| Chief Product Officer | chief_product_officer | workspace-chief_product_officer |
+| Chief Technology Officer | chief_technology_officer | workspace-chief_technology_officer |
+| Programmer | programmer | workspace-programmer |
+| Code Reviewer | code_reviewer | workspace-code_reviewer |
+| Software Test Engineer | software_test_engineer | workspace-software_test_engineer |
+| Chief Creative Officer | chief_creative_officer | workspace-chief_creative_officer |
+| Counselor | counselor | workspace-counselor |
+| Chief Human Resource Officer | chief_human_resource_officer | workspace-chief_human_resource_officer |
+
+## Pending Tasks
+- [ ] Implement multi-agent conversation with conversation history injection
+- [ ] Support role-playing where agents interact with each other autonomously
+- [ ] Add support for streaming responses in AgentAdapter
