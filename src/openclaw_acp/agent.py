@@ -21,6 +21,7 @@ OpenClaw ACP (Agent Client Protocol) Client
 import asyncio
 import hashlib
 import json
+import logging
 import os
 import subprocess
 import threading
@@ -28,6 +29,8 @@ import time
 import uuid
 from queue import Empty, Queue
 from typing import AsyncGenerator, Generator, Optional
+
+logger = logging.getLogger(__name__)
 
 from .utils import require_api_key
 
@@ -128,6 +131,7 @@ class OpenClawAgent:
             if self._started:
                 return
 
+            logger.debug("Starting OpenClawAgent: %s", self.agent)
             cmd = [
                 "openclaw",
                 "acp",
@@ -137,6 +141,7 @@ class OpenClawAgent:
                 f"agent:{self.agent}:{self._session_suffix}",
                 "--reset-session",
             ]
+            logger.debug("Running command: %s", " ".join(cmd))
 
             env = {
                 **os.environ,
@@ -219,6 +224,7 @@ class OpenClawAgent:
         with self._lock:
             self._pending[req_id] = resp_q
 
+        logger.debug("[%s] step() sending prompt, message=%r", req_id, message[:100])
         self._write(
             {
                 "jsonrpc": "2.0",
@@ -238,11 +244,13 @@ class OpenClawAgent:
         while True:
             remaining = deadline - time.time()
             if remaining <= 0:
+                logger.error("[%s] step() timeout after %ds", req_id, timeout)
                 raise TimeoutError(f"等待 session/prompt 响应超时（{timeout}s）")
 
             if resp is None:
                 try:
                     resp = resp_q.get(timeout=min(remaining, 0.5))
+                    logger.debug("[%s] step() received response", req_id)
                 except Empty:
                     continue
 
