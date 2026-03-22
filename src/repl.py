@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from openclaw_acp import OpenClawAgent
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(name)s - %(levelname)s - %(message)s",
     stream=sys.stdout,
 )
