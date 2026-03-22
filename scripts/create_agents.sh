@@ -56,7 +56,7 @@ agent_exists() {
 remove_agent() {
     local agent_name="$1"
     print_status "Removing existing agent: $agent_name"
-    if openclaw agents remove "$agent_name"; then
+    if openclaw agents delete "$agent_name"; then
         print_status "Successfully removed agent: $agent_name"
         return 0
     else
