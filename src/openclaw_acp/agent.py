@@ -93,12 +93,7 @@ class OpenClawAgent:
             gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
         )
         self.agent = agent or "main"
-        self.cwd = (
-            cwd
-            or "/home/node/.openclaw/workspace-{}".format(
-                self.agent.replace("_", "-")
-            ).lower()
-        )
+        self.cwd = cwd or "/workspace"
         self._session_suffix = hashlib.sha256(self.agent.encode()).hexdigest()[:12]
 
         self._proc: Optional[subprocess.Popen] = None
