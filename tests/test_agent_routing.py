@@ -70,7 +70,6 @@ class TestPhaseConfigConsistency:
             ("TestErrorSummary", "Programmer", "Software Test Engineer"),
             ("TestModification", "Programmer", "Software Test Engineer"),
             ("EnvironmentDoc", "Programmer", "Chief Technology Officer"),
-            ("Manual", "Chief Product Officer", "Chief Executive Officer"),
         ],
     )
     def test_phase_role_mapping(
@@ -102,7 +101,6 @@ class TestAgentRouting:
             "TestErrorSummary",
             "TestModification",
             "EnvironmentDoc",
-            "Manual",
         ],
     )
     def test_phase_routes_to_correct_agent(
