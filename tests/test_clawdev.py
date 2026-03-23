@@ -11,8 +11,6 @@ import os
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from clawdev.chain.chain import ChatChain
-from clawdev.adapter.agent_adapter import AgentAdapter
 from clawdev.env.env import ChatEnv
 from clawdev.phases.demand_analysis import DemandAnalysisPhase
 from clawdev.phases.language_choose import LanguageChoosePhase
@@ -22,7 +20,7 @@ from clawdev.phases.coding import CodingPhase
 class MockAgentAdapter:
     """Mock adapter for testing without real agent."""
 
-    def send(self, message):
+    def send(self, message, role="default"):
         """Mock send method that returns a simple response."""
         if "DemandAnalysis" in str(message) or "product modality" in str(message):
             return "Based on the task, I recommend we create an Application.\n<INFO> Application"

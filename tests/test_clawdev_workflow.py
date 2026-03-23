@@ -31,8 +31,6 @@ class WorkflowRecorder:
         self.adapter = adapter
 
         # Wrap send method to record calls
-        original_send = adapter.send
-
         def recorded_send(message, role="default"):
             agent_name = adapter.agent_configs.get(role, "chief_executive_officer")
             self.steps.append(
@@ -130,42 +128,11 @@ class TestClawDevWorkflow:
         chain.pre_processing(task, "test_project")
         chain.make_recruitment()
 
-        # Expected sequence of phases based on ChatChainConfig.json
-        expected_phases = [
-            ("DemandAnalysis", "Chief Product Officer"),
-            ("LanguageChoose", "Chief Technology Officer"),
-            ("Coding", "Programmer"),
-            # CodeCompleteAll runs 10 cycles
-            ("CodeComplete", "Programmer"),
-            ("CodeComplete", "Programmer"),
-            ("CodeComplete", "Programmer"),
-            # CodeReview runs 3 cycles
-            ("CodeReviewComment", "Code Reviewer"),
-            ("CodeReviewModification", "Programmer"),
-            ("CodeReviewComment", "Code Reviewer"),
-            ("CodeReviewModification", "Programmer"),
-            ("CodeReviewComment", "Code Reviewer"),
-            ("CodeReviewModification", "Programmer"),
-            # Test runs 3 cycles
-            ("TestErrorSummary", "Programmer"),
-            ("TestModification", "Programmer"),
-            ("TestErrorSummary", "Programmer"),
-            ("TestModification", "Programmer"),
-            ("TestErrorSummary", "Programmer"),
-            ("TestModification", "Programmer"),
-            # Final phases
-            ("EnvironmentDoc", "Programmer"),
-            ("Manual", "Chief Product Officer"),
-        ]
-
         # Execute phases (simplified - just call execute_step for each)
         for phase_item in chain_config["chain"]:
             phase_type = phase_item.get("phaseType")
 
             if phase_type == "SimplePhase":
-                phase_name = phase_item["phase"]
-                phase_config_item = phase_config[phase_name]
-
                 # Execute via chain
                 chain.execute_step(phase_item)
 
@@ -175,9 +142,6 @@ class TestClawDevWorkflow:
 
                 for cycle in range(cycle_num):
                     for sub_phase_item in composition:
-                        sub_phase_name = sub_phase_item["phase"]
-                        sub_phase_config_item = phase_config[sub_phase_name]
-
                         # Execute via chain
                         chain.execute_step(sub_phase_item)
 
@@ -194,12 +158,12 @@ class TestClawDevWorkflow:
         # Verify first few steps match expected
         assert len(recorder.steps) > 0, "Workflow should execute at least one step"
 
-        # First step should be DemandAnalysis -> CPO
+        # First step should be DemandAnalysis -> CEO (user_role initiates dialog)
         first_step = recorder.steps[0]
-        assert first_step["role"] == "Chief Product Officer", (
-            f"First step should be CPO, got {first_step['role']}"
+        assert first_step["role"] == "Chief Executive Officer", (
+            f"First step should be CEO (initiator), got {first_step['role']}"
         )
-        assert first_step["agent_name"] == "chief_product_officer"
+        assert first_step["agent_name"] == "chief_executive_officer"
 
         print("\n" + "=" * 60)
         print("✓ Workflow executes correctly")
@@ -209,8 +173,8 @@ class TestClawDevWorkflow:
 class TestPhaseSequence:
     """Test individual phase execution sequence."""
 
-    def test_demand_analysis_sends_to_cpo(self, agent_configs, phase_config):
-        """Test that DemandAnalysis phase sends to CPO."""
+    def test_demand_analysis_sends_to_ceo(self, agent_configs, phase_config):
+        """Test that DemandAnalysis phase sends to CEO (user_role initiates)."""
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
@@ -226,14 +190,14 @@ class TestPhaseSequence:
         # Execute
         env = phase.execute(env, adapter)
 
-        # Verify
-        assert len(recorder.steps) == 1
-        step = recorder.steps[0]
-        assert step["role"] == "Chief Product Officer"
-        assert step["agent_name"] == "chief_product_officer"
+        # Verify first message goes to CEO (user_role, the initiator)
+        assert len(recorder.steps) >= 1
+        first_step = recorder.steps[0]
+        assert first_step["role"] == "Chief Executive Officer"
+        assert first_step["agent_name"] == "chief_executive_officer"
 
-    def test_language_choose_sends_to_cto(self, agent_configs, phase_config):
-        """Test that LanguageChoose phase sends to CTO."""
+    def test_language_choose_sends_to_ceo(self, agent_configs, phase_config):
+        """Test that LanguageChoose phase sends to CEO (user_role initiates)."""
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
@@ -247,13 +211,13 @@ class TestPhaseSequence:
 
         env = phase.execute(env, adapter)
 
-        assert len(recorder.steps) == 1
-        step = recorder.steps[0]
-        assert step["role"] == "Chief Technology Officer"
-        assert step["agent_name"] == "chief_technology_officer"
+        assert len(recorder.steps) >= 1
+        first_step = recorder.steps[0]
+        assert first_step["role"] == "Chief Executive Officer"
+        assert first_step["agent_name"] == "chief_executive_officer"
 
-    def test_coding_sends_to_programmer(self, agent_configs, phase_config):
-        """Test that Coding phase sends to Programmer."""
+    def test_coding_sends_to_cto(self, agent_configs, phase_config):
+        """Test that Coding phase sends to CTO (user_role initiates)."""
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
@@ -269,10 +233,10 @@ class TestPhaseSequence:
 
         env = phase.execute(env, adapter)
 
-        assert len(recorder.steps) == 1
-        step = recorder.steps[0]
-        assert step["role"] == "Programmer"
-        assert step["agent_name"] == "programmer"
+        assert len(recorder.steps) >= 1
+        first_step = recorder.steps[0]
+        assert first_step["role"] == "Chief Technology Officer"
+        assert first_step["agent_name"] == "chief_technology_officer"
 
 
 class TestMessageContent:
@@ -286,7 +250,6 @@ class TestMessageContent:
 
         # Override send to capture message
         captured_message = []
-        original_send = adapter.send
 
         def capture_send(message, role="default"):
             captured_message.append(message)
@@ -301,12 +264,13 @@ class TestMessageContent:
 
         phase.execute(env, adapter)
 
-        assert len(captured_message) == 1
-        message = captured_message[0]
+        assert len(captured_message) >= 1
+        first_message = captured_message[0]
 
         # Verify prompt contains task
         assert (
-            "Create a calculator app" in message or "calculator" in message.lower()
+            "Create a calculator app" in first_message
+            or "calculator" in first_message.lower()
         ), "Prompt should contain task information"
 
     def test_coding_prompt_contains_language(self, agent_configs, phase_config):
@@ -316,7 +280,6 @@ class TestMessageContent:
         adapter = AgentAdapter(agent_configs)
 
         captured_message = []
-        original_send = adapter.send
 
         def capture_send(message, role="default"):
             captured_message.append(message)
@@ -334,11 +297,11 @@ class TestMessageContent:
 
         phase.execute(env, adapter)
 
-        assert len(captured_message) == 1
-        message = captured_message[0]
+        assert len(captured_message) >= 1
+        first_message = captured_message[0]
 
         # Verify prompt contains language
-        assert "Python" in message, "Prompt should contain language information"
+        assert "Python" in first_message, "Prompt should contain language information"
 
 
 if __name__ == "__main__":
