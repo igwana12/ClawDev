@@ -4,182 +4,179 @@
     "user_role_name": "Chief Executive Officer",
     "max_dialog_turns": 6,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Analyze requirements and recommend product modality.",
       "",
-      "IMPORTANT: Write ONLY a message to instruct {assistant_role}. Do NOT simulate responses.",
+      "[Important] Use Write tool to create files. Use Bash tool to run commands.",
       "",
-      "Your message will be sent directly to {assistant_role}. Wait for their response.",
+      "[Result] When agreed on modality, output: <result>Modality</result>",
       "",
-      "{context}"
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 DemandAnalysis\n\n【Task】\nAsk {assistant_role} to analyze user requirements and recommend product modality.\n\n【Result Format】\nWhen both parties agree on a modality, use <result> tags to wrap the conclusion.\nExample: <result>Application</result>\nDo NOT include <result> tags in your message until a conclusion is reached.\n\n【Context】\nUser requirement: \"{task}\"\n\nProduct Modality Options:\n- Image: line charts, bar charts, flow charts, etc.\n- Document: .docx files\n- PowerPoint: .pptx files\n- Excel: .xlsx files\n- PDF: .pdf files\n- Website: .html files\n- Application: Python games, software, tools\n- Dashboard: real-time information panels\n- Mind Map: ideas around a core concept",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\n\nOptions:\n- Image: charts, graphs\n- Document: .docx files\n- PowerPoint: .pptx files\n- Excel: .xlsx files\n- PDF: .pdf files\n- Website: .html files\n- Application: Python software, tools\n- Dashboard: real-time panels\n- Mind Map: idea maps"
   },
   "LanguageChoose": {
     "assistant_role_name": "Chief Technology Officer",
     "user_role_name": "Chief Executive Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Recommend the best programming language for this project.",
       "",
-      "IMPORTANT: Write ONLY a message to instruct {assistant_role}. Do NOT simulate responses.",
+      "[Important] Consider modality, project complexity, and maintainability.",
       "",
-      "Your message will be sent directly to {assistant_role}. Wait for their response.",
+      "[Result] When agreed on language, output: <result>Language</result>",
       "",
-      "{context}"
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 LanguageChoose\n\n【Task】\nAsk {assistant_role} to recommend the best programming language for this project.\n\n【Result Format】\nWhen both parties agree on a language, use <result> tags to wrap the conclusion.\nExample: <result>Python</result>\nDo NOT include <result> tags in your message until a conclusion is reached.\n\n【Context】\nUser requirement: \"{task}\"\nProduct modality: \"{modality}\"",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nModality: {modality}"
   },
   "Coding": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Technology Officer",
     "max_dialog_turns": 8,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Implement the software according to requirements.",
       "",
-      "IMPORTANT: Write ONLY a message to instruct {assistant_role}. Do NOT simulate responses.",
+      "[Important] Use Write tool for code files. Use Bash tool for testing.",
       "",
-      "Your message will be sent directly to {assistant_role}. Wait for their response.",
+      "[Result] When implementation is complete and verified, output: <result>Done</result>",
       "",
-      "{context}"
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 Coding\n\n【Task】\nAsk {assistant_role} to implement the software according to requirements.\n\n【Result Format】\nWhen implementation is complete and verified, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until implementation is verified.\n\n【Important】\nInstruct {assistant_role} to use Write tool for code files and Bash tool for testing.\n\n【Context】\nUser requirement: \"{task}\"\nDescription: \"{description}\"\nModality: \"{modality}\"\nLanguage: \"{language}\"",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nDescription: {description}\nModality: {modality}\nLanguage: {language}"
   },
   "ArtDesign": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Creative Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Design decorative images for the GUI.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Create images that match the application theme.",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When design is complete, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 ArtDesign\n\n【Task】\nDesign decorative images for the GUI.\n\n【Result Format】\nWhen design is complete, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until design is verified.",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nLanguage: {language}"
   },
   "ArtIntegration": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Creative Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Integrate designed images into GUI code.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Use self.* to avoid garbage collection:\nself.image = ImageTk.PhotoImage(Image.open(\"./image.png\").resize((50, 50)))",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When images are integrated, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 ArtIntegration\n\n【Task】\nIntegrate designed images into GUI code.\n\n【Result Format】\nWhen images are integrated, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until integration is verified.\n\n【Image Specs】\n256x256 pixels. Use self.* to avoid garbage collection:\nself.image = ImageTk.PhotoImage(Image.open(\"./image.png\").resize((50, 50)))",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nImages: {images}"
   },
   "CodeComplete": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Technology Officer",
     "max_dialog_turns": 6,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Implement methods in unimplemented files.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Fill in all TODO or pass statements.",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When all methods are implemented, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 CodeComplete\n\n【Task】\nImplement methods in unimplemented files.\n\n【Result Format】\nWhen all methods are implemented, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until all methods are implemented.",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nLanguage: {language}\nUnimplemented: {unimplemented_file}"
   },
   "CodeReviewComment": {
     "assistant_role_name": "Code Reviewer",
     "user_role_name": "Programmer",
     "max_dialog_turns": 6,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Review code and identify issues.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Standards]\n1. All classes imported correctly\n2. All methods implemented\n3. Necessary comments present\n4. No potential bugs\n5. Conforms to requirements\n6. Logic is sound",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When all issues are identified, output: <result>Issues found</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 CodeReviewComment\n\n【Task】\nReview code and fix issues.\n\n【Result Format】\nWhen all issues are resolved, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until all issues are resolved.\n\n【Review Standards】\n1. All classes imported correctly\n2. All methods implemented\n3. Necessary comments present\n4. No potential bugs\n5. Conforms to requirements\n6. Logic is sound",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nLanguage: {language}"
   },
   "CodeReviewModification": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Code Reviewer",
     "max_dialog_turns": 6,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Modify code based on review comments.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Fix all issues identified in the review.",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When modifications are complete and verified, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 CodeReviewModification\n\n【Task】\nModify code based on review comments.\n\n【Result Format】\nWhen modifications are complete, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until modifications are verified.",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Language: {language}\nComments: {comments}"
   },
   "TestErrorSummary": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Software Test Engineer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Analyze test reports and summarize bugs.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Categorize bugs by severity and type.",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When analysis is complete, output: <result>N bugs found</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 TestErrorSummary\n\n【Task】\nAnalyze test reports and summarize bugs.\n\n【Result Format】\nWhen analysis is complete, use <result> tags to wrap the conclusion.\nExample: <result>3 bugs found</result>\nDo NOT include <result> tags in your message until analysis is done.",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Language: {language}\nTest reports: {test_reports}"
   },
   "TestModification": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Software Test Engineer",
     "max_dialog_turns": 6,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Fix bugs based on test reports.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Important] Run tests after fixing to verify all pass.",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When all bugs are fixed and tests pass, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 TestModification\n\n【Task】\nFix bugs based on test reports.\n\n【Result Format】\nWhen all bugs are fixed and tests pass, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until all tests pass.",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Language: {language}\nError summary: {error_summary}"
   },
   "EnvironmentDoc": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Technology Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Create requirements.txt for project dependencies.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Example]\nnumpy>=1.19.2\npandas>=1.1.4",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When file is created and verified, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 EnvironmentDoc\n\n【Task】\nCreate requirements.txt for project dependencies.\n\n【Result Format】\nWhen file is complete, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until file is verified.\n\n【Example Format】\nnumpy==1.19.2\npandas>=1.1.4",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Language: {language}"
   },
   "Manual": {
     "assistant_role_name": "Chief Product Officer",
     "user_role_name": "Chief Executive Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "You are {user_role}.",
+      "[Task] Create a user manual in Markdown format.",
       "",
-      "Important: You will NOT talk to me. You will talk to {assistant_role}.",
-      "I will NOT respond to you. Your messages will be sent directly to {assistant_role}.",
+      "[Include]\n- Software introduction\n- Installation instructions\n- Feature descriptions\n- User guide",
       "",
-      "Start by instructing {assistant_role} what to do."
+      "[Result] When manual is complete and verified, output: <result>Done</result>",
+      "",
+      "[Context] {context}"
     ],
-    "context": "【Current Phase】 Manual\n\n【Task】\nCreate a user manual in Markdown format.\n\n【Result Format】\nWhen manual is complete, use <result> tags to wrap the conclusion.\nExample: <result>Done</result>\nDo NOT include <result> tags in your message until manual is verified.\n\n【Manual Should Include】\n- Software introduction\n- Installation instructions\n- Feature descriptions\n- User guide",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "Task: {task}\nModality: {modality}\nLanguage: {language}"
   }
 }
