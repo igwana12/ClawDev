@@ -16,7 +16,6 @@ from .phases.coding import CodingPhase
 from .phases.code_review import CodeReviewCommentPhase, CodeReviewModificationPhase
 from .phases.testing import TestErrorSummaryPhase, TestModificationPhase
 from .phases.environment_doc import EnvironmentDocPhase
-from .phases.manual import ManualPhase
 from .phases.composed_phase import ComposedPhase
 
 __all__ = [
@@ -32,6 +31,5 @@ __all__ = [
     "TestErrorSummaryPhase",
     "TestModificationPhase", 
     "EnvironmentDocPhase",
-    "ManualPhase",
     "ComposedPhase",
 ]

@@ -6,20 +6,17 @@ with different configurations and options.
 """
 
 import argparse
-import sys
-import os
-import json
 import logging
+import sys
+
+from clawdev.chain.chain import ChatChain
+from clawdev.adapter.agent_adapter import AgentAdapter
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-from clawdev.chain.chain import ChatChain
-from clawdev.adapter.agent_adapter import AgentAdapter
-from openclaw_acp import OpenClawAgent
 
 
 class MockAgentAdapter:

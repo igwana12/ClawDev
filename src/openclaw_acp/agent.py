@@ -30,9 +30,9 @@ import uuid
 from queue import Empty, Queue
 from typing import AsyncGenerator, Generator, Optional
 
-logger = logging.getLogger(__name__)
-
 from .utils import require_api_key
+
+logger = logging.getLogger(__name__)
 
 
 class OpenClawAgent:
@@ -79,6 +79,7 @@ class OpenClawAgent:
         agent: Optional[str] = None,
         cwd: Optional[str] = None,
         auto_start: bool = True,
+        session_context: Optional[str] = None,
     ):
         """
         初始化 OpenClaw Agent。
@@ -88,6 +89,7 @@ class OpenClawAgent:
             agent: Agent 名称
             cwd: 工作目录
             auto_start: 是否自动启动
+            session_context: 可选的会话上下文消息，在初始化后发送（描述用户任务等全局信息）
         """
         self.gateway_url = (
             gateway_url or os.getenv("OPENCLAW_GATEWAY_URL") or "ws://127.0.0.1:18789"
@@ -95,6 +97,7 @@ class OpenClawAgent:
         self.agent = agent or "main"
         self.cwd = cwd or "/workspace"
         self._session_suffix = hashlib.sha256(self.agent.encode()).hexdigest()[:12]
+        self._session_context = session_context
 
         self._proc: Optional[subprocess.Popen] = None
         self._recv_queue: Queue = Queue()
@@ -307,7 +310,7 @@ class OpenClawAgent:
             timeout=timeout,
         )
 
-    def stream(self, message: str, timeout: int = 120) -> AsyncGenerator[str, None]:
+    def stream(self, message: str, timeout: int = 600) -> AsyncGenerator[str, None]:
         """
         流式发送消息，逐块返回响应。
 
@@ -586,7 +589,7 @@ class OpenClawAgent:
 
         try:
             logger.debug("Sending initialization message: /new")
-            response = self.step("/new", timeout=timeout)
+            response = self.step("hello", timeout=timeout)
             self._initialization_response = response
             logger.debug(
                 "Initialization response: %s", response[:100] if response else "None"
@@ -594,6 +597,14 @@ class OpenClawAgent:
         except Exception as e:
             logger.warning("Failed to send initialization message: %s", e)
             self._initialization_response = None
+
+        if self._session_context:
+            try:
+                logger.debug("Sending session context message")
+                self.step(self._session_context, timeout=timeout)
+                logger.debug("Session context sent successfully")
+            except Exception as e:
+                logger.warning("Failed to send session context: %s", e)
 
     def __enter__(self) -> "OpenClawAgent":
         """上下文管理器入口，自动启动 Agent。"""
