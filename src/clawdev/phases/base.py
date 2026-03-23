@@ -6,8 +6,11 @@ Defines the abstract interface and common functionality for all development phas
 
 from abc import ABC, abstractmethod
 import re
+import logging
 from typing import Dict, Any, List
 from ..env.env import ChatEnv
+
+logger = logging.getLogger(__name__)
 
 
 class Phase(ABC):
@@ -37,17 +40,17 @@ class Phase(ABC):
         Returns:
             Updated environment after phase execution
         """
-        # Render prompt for this phase
-        prompt = self.render_prompt(env)
+        logger.debug("[Phase] execute() phase=%s", self.phase_name)
 
-        # Send prompt to agent and get response
-        # Pass the role information to the adapter
+        prompt = self.render_prompt(env)
+        logger.debug("[Phase] render_prompt() returned %d chars", len(prompt))
+
         if hasattr(self, "assistant_role") and self.assistant_role:
             response = agent_adapter.send(prompt, role=self.assistant_role)
         else:
             response = agent_adapter.send(prompt)
 
-        # Update environment with agent response
+        logger.debug("[Phase] agent.send() returned %d chars", len(response))
         self.update_env(env, response)
 
         return env

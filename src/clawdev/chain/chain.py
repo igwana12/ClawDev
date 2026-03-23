@@ -6,9 +6,12 @@ Orchestrates the complete software development process through configured phases
 
 import os
 import json
+import logging
 from typing import Dict, List, Any, Optional
 from ..env.env import ChatEnv
 from ..phases.base import Phase
+
+logger = logging.getLogger(__name__)
 
 
 class ChatChain:
