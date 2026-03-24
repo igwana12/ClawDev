@@ -164,10 +164,22 @@ Each phase executes a dialog between two agents:
 
 The dialog continues until the `<result>` tag is detected in a response.
 
-### Phase Types
+### Phase Architecture
 
-- **SimplePhase**: Single dialog phase execution
-- **ComposedPhase**: Multiple sub-phases executed in a loop
+#### Phase Base Class (`src/clawdev/phases/base.py`)
+- Abstract base class for all phases
+- Handles dialog execution, environment updates, and result detection
+- Key method: `_should_end_dialog()` - detects `<result>` tags
+
+#### SimplePhase (`src/clawdev/phases/simple_phase.py`)
+- Single dialog phase execution
+- Executes one conversation between two agents
+- Terminates when `<result>` tag is detected
+
+#### ComposedPhase (`src/clawdev/phases/composed_phase.py`)
+- Multiple sub-phases executed in sequence
+- Each sub-phase is a complete phase
+- Continues until all sub-phases complete or max iterations reached
 
 ### Phase Configuration
 
@@ -196,6 +208,11 @@ The dialog ends when a message contains `<result>` tags:
 <result>Done</result>
 ```
 
+**Quote Detection Rules:**
+- Only checks characters immediately surrounding `<result>`
+- If `<result>` is inside quotes (`"`, `'`, `` ` ``), it does NOT end the dialog
+- Handles edge cases: `<result>` at start of text
+
 Agents should:
 - Only use `<result>` tags when they have reached a conclusion
 - Not include `<result>` in messages until discussion is complete
@@ -223,8 +240,8 @@ Session context is sent to agents during initialization via `ChatChain.make_recr
 The Coding phase is a ComposedPhase consisting of:
 
 1. **CodingInit**: CTO creates Gitea repository
-   - Creates repo using `tea repo create`
-   - Initializes git and pushes to Gitea
+   - Creates public repo using `tea repo create`
+   - Adds Programmer as repository member
    - Notifies Programmer of repository URL
 
 2. **CodingImprove**: Programmer writes code and creates PR
@@ -251,6 +268,18 @@ The Coding phase is a ComposedPhase consisting of:
 | Chief Creative Officer | chief_creative_officer |
 | Counselor | counselor |
 | Chief Human Resource Officer | chief_human_resource_officer |
+
+## Agent Configuration Files
+
+Each agent has its own configuration in `configs/default/{Role}/`:
+
+| File | Purpose |
+|------|---------|
+| **IDENTITY.md** | Identity card (name, emoji, avatar) |
+| **SOUL.md** | Personality and communication style |
+| **USER.md** | User profile and communication targets |
+| **AGENTS.md** | Work protocol, environment, colleagues, boundaries |
+| **TOOLS.md** | Environment mapping (paths, tools) |
 
 ## Notes for Agentic Coding
 
