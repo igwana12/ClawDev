@@ -587,16 +587,16 @@ class OpenClawAgent:
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
-        try:
-            logger.debug("Sending initialization message: /new")
-            response = self.step("hello", timeout=timeout)
-            self._initialization_response = response
-            logger.debug(
-                "Initialization response: %s", response[:100] if response else "None"
-            )
-        except Exception as e:
-            logger.warning("Failed to send initialization message: %s", e)
-            self._initialization_response = None
+        # try:
+        #     logger.debug("Sending initialization message: /new")
+        #     response = self.step("hello", timeout=timeout)
+        #     self._initialization_response = response
+        #     logger.debug(
+        #         "Initialization response: %s", response[:100] if response else "None"
+        #     )
+        # except Exception as e:
+        #     logger.warning("Failed to send initialization message: %s", e)
+        #     self._initialization_response = None
 
         if self._session_context:
             try:
