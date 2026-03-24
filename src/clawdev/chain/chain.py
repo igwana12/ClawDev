@@ -31,7 +31,6 @@ class ChatChain:
         # Load configuration files
         self.chain_config = self._load_config("ChatChainConfig.json")
         self.phase_config = self._load_config("PhaseConfig.json")
-        self.role_config = self._load_config("RoleConfig.json")
 
         # Initialize environment
         self.env: Optional[ChatEnv] = None
