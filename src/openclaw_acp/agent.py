@@ -207,7 +207,7 @@ class OpenClawAgent:
         """
         return self.step(message, timeout)
 
-    def step(self, message: str, timeout: int = 120) -> str:
+    def step(self, message: str, timeout: int = 600) -> str:
         """
         发送消息并等待完整响应。
 

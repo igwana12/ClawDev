@@ -5,6 +5,7 @@
     "max_dialog_turns": 6,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -27,6 +28,7 @@
     "max_dialog_turns": 4,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -50,6 +52,7 @@
     "max_dialog_turns": 8,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -74,6 +77,7 @@
     "max_dialog_turns": 4,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -98,6 +102,7 @@
     "max_dialog_turns": 4,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -122,6 +127,7 @@
     "max_dialog_turns": 6,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -144,6 +150,7 @@
     "max_dialog_turns": 6,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -168,6 +175,7 @@
     "max_dialog_turns": 6,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -190,6 +198,7 @@
     "max_dialog_turns": 4,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -214,6 +223,7 @@
     "max_dialog_turns": 6,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
@@ -236,6 +246,7 @@
     "max_dialog_turns": 4,
     "initiator_prompt": [
       "[MESSAGE] Send a message to {assistant_role} to begin discussing the current task.",
+      "Inform {assistant_role} about the task details and the required conclusion format.",
       "",
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
