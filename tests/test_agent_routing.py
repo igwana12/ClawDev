@@ -13,7 +13,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from clawdev.adapter.agent_adapter import AgentAdapter
-from clawdev.phases.base import SimplePhase
+from clawdev.phases.simple_phase import SimplePhase
 from clawdev.env.env import ChatEnv
 
 

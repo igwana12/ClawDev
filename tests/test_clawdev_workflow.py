@@ -178,7 +178,7 @@ class TestPhaseSequence:
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
-        from clawdev.phases.base import SimplePhase
+        from clawdev.phases.simple_phase import SimplePhase
 
         # Create phase
         phase = SimplePhase(phase_config["DemandAnalysis"])
@@ -201,7 +201,7 @@ class TestPhaseSequence:
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
-        from clawdev.phases.base import SimplePhase
+        from clawdev.phases.simple_phase import SimplePhase
 
         phase = SimplePhase(phase_config["LanguageChoose"])
 
@@ -221,7 +221,7 @@ class TestPhaseSequence:
         recorder = WorkflowRecorder(agent_configs)
         adapter = recorder.create_adapter()
 
-        from clawdev.phases.base import SimplePhase
+        from clawdev.phases.simple_phase import SimplePhase
 
         phase = SimplePhase(phase_config["Coding"])
 
@@ -244,7 +244,7 @@ class TestMessageContent:
 
     def test_demand_analysis_prompt_contains_task(self, agent_configs, phase_config):
         """Test that DemandAnalysis prompt contains task information."""
-        from clawdev.phases.base import SimplePhase
+        from clawdev.phases.simple_phase import SimplePhase
 
         adapter = AgentAdapter(agent_configs)
 
@@ -275,7 +275,7 @@ class TestMessageContent:
 
     def test_coding_prompt_contains_language(self, agent_configs, phase_config):
         """Test that Coding prompt contains language information."""
-        from clawdev.phases.base import SimplePhase
+        from clawdev.phases.simple_phase import SimplePhase
 
         adapter = AgentAdapter(agent_configs)
 

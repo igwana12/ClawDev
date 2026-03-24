@@ -7,7 +7,8 @@ Provides hooks for sub-classes to customize behavior.
 
 import logging
 from typing import Dict, Any, List
-from .base import Phase, SimplePhase
+from .base import Phase
+from .simple_phase import SimplePhase
 
 logger = logging.getLogger(__name__)
 

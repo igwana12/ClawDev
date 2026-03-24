@@ -79,8 +79,16 @@ class ChatChain:
             all_roles = list(self.agent_adapter.agent_configs.keys())
             for role in all_roles:
                 colleagues = [r for r in all_roles if r != role]
-                colleagues_str = ", ".join(colleagues[:-1]) + ", and " + colleagues[-1] if len(colleagues) > 1 else colleagues[0]
-                session_context = context_lines.format(task=self.env.task_prompt, role_name=role, colleagues_list=colleagues_str)
+                colleagues_str = (
+                    ", ".join(colleagues[:-1]) + ", and " + colleagues[-1]
+                    if len(colleagues) > 1
+                    else colleagues[0]
+                )
+                session_context = context_lines.format(
+                    task=self.env.task_prompt,
+                    role_name=role,
+                    colleagues_list=colleagues_str,
+                )
                 self.agent_adapter.set_session_context(role, session_context)
 
     def execute_chain(self) -> None:
@@ -110,7 +118,7 @@ class ChatChain:
 
             print(f"Executing phase: {phase_name}")
 
-            from ..phases.base import SimplePhase
+            from ..phases.simple_phase import SimplePhase
 
             phase = SimplePhase(phase_config)
 

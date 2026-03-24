@@ -8,7 +8,8 @@ Phase hierarchy:
 - ComposedPhase: Loop execution of multiple sub-phases
 """
 
-from .base import Phase, SimplePhase
+from .base import Phase
+from .simple_phase import SimplePhase
 from .composed_phase import ComposedPhase
 
 __all__ = [
