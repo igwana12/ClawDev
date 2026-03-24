@@ -269,16 +269,21 @@ try:
     
     # Copy each required skill
     for skill_name in required_skills:
-        # Find the skill directory in default workspace (skills may have version numbers)
+        # Find the skill directory in default workspace
         source_skills_dir = '$default_skills_dir'
-        skill_dirs = glob.glob(os.path.join(source_skills_dir, skill_name + '-*'))
         
-        if not skill_dirs:
-            print(f'Warning: Skill \'{skill_name}\' not found in {source_skills_dir}')
-            continue
+        # First try exact match (no version suffix)
+        exact_match = os.path.join(source_skills_dir, skill_name)
+        if os.path.isdir(exact_match):
+            source_skill_dir = exact_match
+        else:
+            # Try glob pattern for versioned skills (e.g., python-*)
+            skill_dirs = glob.glob(os.path.join(source_skills_dir, skill_name + '-*'))
+            if not skill_dirs:
+                print(f'Warning: Skill \'{skill_name}\' not found in {source_skills_dir}')
+                continue
+            source_skill_dir = skill_dirs[0]
         
-        # Use the first matching skill directory
-        source_skill_dir = skill_dirs[0]
         # Safety check: ensure source is within default skills directory
         if not source_skill_dir.startswith('$default_skills_dir'):
             print(f'Error: Invalid source path: {source_skill_dir}')
