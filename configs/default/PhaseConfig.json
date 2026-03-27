@@ -82,7 +82,7 @@
       "[INSTRUCT {assistant_role}] The message must meet the following requirements:",
       "- MUST include the repository URL",
       "- Ask {assistant_role} to confirm whether they can access the repository",
-      "- Ask {assistant_role} to write the initial code and submit it as a PR",
+      "- Describe the user requirements to {assistant_role} and ask them to write the initial code and submit it as a PR",
       "- Tell {assistant_role} that all future code changes must be submitted via PR for your review",
       "- Tell {assistant_role} they must NOT output <result> tags. Whether this phase ends is determined solely by you (CTO)",
       "- Do NOT include <result> tags with content in this message, as this will skip the phase",
