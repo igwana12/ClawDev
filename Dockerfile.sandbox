@@ -37,6 +37,29 @@ RUN echo "Downloading tea v${TEA_VERSION}..." && \
 
 RUN useradd --create-home --shell /bin/bash sandbox
 
+# Wrapper for tea to work around HOME override issue.
+# When OpenClaw agent calls exec tool with cwd parameter, OpenClaw sets HOME to that cwd value.
+# However, tea config (login token) is stored in /workspace/.config/tea/ (mounted from host).
+# tea uses XDG_CONFIG_HOME (xdg library), so we set it to /workspace/.config so it can find tea/config.yml.
+RUN mv /usr/local/bin/tea /usr/local/bin/tea.real && \
+    printf '#!/bin/bash\n\
+export XDG_CONFIG_HOME=/workspace/.config\n\
+export GIT_CONFIG_GLOBAL=/workspace/.gitconfig\n\
+exec /usr/local/bin/tea.real "$@"\n' > /usr/local/bin/tea && \
+    chmod +x /usr/local/bin/tea
+
+# Wrapper for git to work around HOME override issue.
+# When OpenClaw agent calls exec tool with cwd parameter, OpenClaw sets HOME to that cwd value.
+# Git config (~/.gitconfig) and credentials (~/.git-credentials) are in /workspace (mounted from host).
+# Git uses GIT_CONFIG_GLOBAL to specify config path, and -c credential.helper with --file for credentials.
+RUN mv /usr/bin/git /usr/bin/git.real && \
+    printf '#!/bin/bash\n\
+export XDG_CONFIG_HOME=/workspace\n\
+export GIT_CONFIG_GLOBAL=/workspace/.gitconfig\n\
+exec /usr/bin/git.real -c credential.helper="store --file /workspace/.git-credentials" "$@"\n' > /usr/local/bin/git && \
+    chmod +x /usr/local/bin/git && \
+    ln -sf /usr/local/bin/git /usr/bin/git
+
 USER sandbox
 WORKDIR /home/sandbox
 
