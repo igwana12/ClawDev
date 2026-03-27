@@ -223,7 +223,7 @@ class TestPhaseSequence:
 
         from clawdev.phases.simple_phase import SimplePhase
 
-        phase = SimplePhase(phase_config["Coding"])
+        phase = SimplePhase(phase_config["CodingInit"])
 
         env = ChatEnv("/tmp/test")
         env.task_prompt = "Create a calculator"
@@ -287,7 +287,7 @@ class TestMessageContent:
 
         adapter.send = capture_send
 
-        phase = SimplePhase(phase_config["Coding"])
+        phase = SimplePhase(phase_config["CodingImprove"])
 
         env = ChatEnv("/tmp/test")
         env.task_prompt = "Create a calculator"
