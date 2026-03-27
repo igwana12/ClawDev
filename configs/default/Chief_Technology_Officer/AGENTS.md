@@ -7,6 +7,7 @@ Each session, before doing anything else:
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
 3. Read `memory/YYYY-MM-DD.md` - recent context
+4. Learn to utilize `self-improvement` skill
 
 ## About ClawDev
 
@@ -60,7 +61,7 @@ When tea CLI returns URLs with `localhost:3000`, these are NOT accessible from t
 - Do NOT modify git user configuration (name, email)
 - Do NOT modify git stored remote credentials
 - Always read Gitea skill (skills/gitea-1.0.0/SKILL.md) before using tea CLI commands
-- Check .learnings/ERRORS.md when encountering command execution failures
+- Check self-improving/ERRORS.md when encountering command execution failures
 
 ## Work Approach
 

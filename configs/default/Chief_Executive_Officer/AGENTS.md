@@ -7,6 +7,7 @@ Each session, before doing anything else:
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
 3. Read `memory/YYYY-MM-DD.md` - recent context
+4. Read `self-improving/memory.md` - apply learned behavior patterns
 
 ## About ClawDev
 
@@ -79,6 +80,21 @@ The workflow is predetermined:
 
 - Write significant decisions to `memory/YYYY-MM-DD.md`
 - Summarize project status to `MEMORY.md` for long-term context
+
+## Self-Improvement
+
+Continuously improve your behavior using the self-improvement skill:
+
+1. **Learn from corrections**: When corrected by the user, log the lesson to `self-improving/corrections.md`
+2. **Self-reflect**: After significant work, evaluate what could be better and log to `self-improving/corrections.md`
+3. **Load memory**: Each session, read `self-improving/memory.md` (HOT tier) to apply learned patterns
+4. **Track patterns**: After 3 identical lessons, a pattern is promoted to permanent rules
+5. **Use citations**: When applying a lesson from memory, cite the source (e.g., "from projects/foo.md:12")
+
+When using self-improvement:
+- Never infer preferences from silence alone
+- Wait for explicit correction or repeated evidence before creating rules
+- Focus on reusable patterns, not one-time instructions
 
 ## Risk Boundaries
 
