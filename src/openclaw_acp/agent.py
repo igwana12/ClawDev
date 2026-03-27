@@ -579,7 +579,7 @@ class OpenClawAgent:
 
     def _send_initialization_message(self, timeout: int = 120) -> None:
         """
-        发送初始化消息 "/new" 并存储响应。
+        发送初始化消息并存储响应。
 
         Args:
             timeout: 超时时间（秒）
@@ -587,16 +587,16 @@ class OpenClawAgent:
         if not self._proc or not self._session_id:
             raise RuntimeError("请先调用 start()")
 
-        # try:
-        #     logger.debug("Sending initialization message: /new")
-        #     response = self.step("hello", timeout=timeout)
-        #     self._initialization_response = response
-        #     logger.debug(
-        #         "Initialization response: %s", response[:100] if response else "None"
-        #     )
-        # except Exception as e:
-        #     logger.warning("Failed to send initialization message: %s", e)
-        #     self._initialization_response = None
+        try:
+            logger.debug("Sending initialization message: /new")
+            response = self.step("A new session was started. Run your Session Startup sequence - read the required files before responding to the user. Then greet the user in your configured persona, if one is provided. Be yourself - use your defined voice, mannerisms, and mood. Keep it to 1-3 sentences and ask what they want to do. If the runtime model differs from default_model in the system prompt, mention the default model. Do not mention internal steps, files, tools, or reasoning.", timeout=timeout)
+            self._initialization_response = response
+            logger.debug(
+                "Initialization response: %s", response[:100] if response else "None"
+            )
+        except Exception as e:
+            logger.warning("Failed to send initialization message: %s", e)
+            self._initialization_response = None
 
         if self._session_context:
             try:
