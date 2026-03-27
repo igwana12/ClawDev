@@ -37,6 +37,21 @@ RUN echo "Downloading tea v${TEA_VERSION}..." && \
 
 RUN useradd --create-home --shell /bin/bash sandbox
 
+RUN mv /usr/local/bin/tea /usr/local/bin/tea.real && \
+    printf '#!/bin/bash\n\
+export XDG_CONFIG_HOME=/workspace/.config\n\
+export GIT_CONFIG_GLOBAL=/workspace/.gitconfig\n\
+exec /usr/local/bin/tea.real "$@"\n' > /usr/local/bin/tea && \
+    chmod +x /usr/local/bin/tea
+
+RUN mv /usr/bin/git /usr/bin/git.real && \
+    printf '#!/bin/bash\n\
+export XDG_CONFIG_HOME=/workspace\n\
+export GIT_CONFIG_GLOBAL=/workspace/.gitconfig\n\
+exec /usr/bin/git.real -c credential.helper="store --file /workspace/.git-credentials" "$@"\n' > /usr/local/bin/git && \
+    chmod +x /usr/local/bin/git && \
+    ln -sf /usr/local/bin/git /usr/bin/git
+
 USER sandbox
 WORKDIR /home/sandbox
 
