@@ -44,37 +44,45 @@ class MockAgentAdapter:
         """Mock send method that returns a simple response."""
         print(f"MockAgentAdapter received message: {message[:100]}...")
         if "DemandAnalysis" in str(message) or "product modality" in str(message):
-            response = "Based on the task, I recommend we create an Application.\n<INFO> Application"
+            response = "Based on the task, I recommend we create an Application.\n<result>Application</result>"
             print(f"MockAgentAdapter response for demand analysis: {response}")
             return response
         elif "language" in str(message).lower() and (
             "choose" in str(message).lower() or "Choose" in str(message)
         ):
-            response = "For this task, Python would be the best choice.\n<INFO> Python"
+            response = "For this task, Python would be the best choice.\n<result>Python</result>"
             print(f"MockAgentAdapter response for language choose: {response}")
             return response
-        elif "According to the new user's task and some creative" in str(message):
-            response = "For this task, Python would be the best choice.\n<INFO> Python"
-            print(
-                f"MockAgentAdapter response for language choose (fallback): {response}"
-            )
+        elif "CodingInit" in str(message):
+            response = "I've created the repository and added Programmer as a collaborator.\n<result>Done</result>"
+            print(f"MockAgentAdapter response for CodingInit: {response}")
             return response
-        elif "Coding" in str(message) or "create a simple implementation" in str(
-            message
-        ):
-            response = "Here's a simple implementation:\n\nmain.py\n```python\nprint('Hello, World!')\n```\n\n"
+        elif "CodingImprove" in str(message) or "Coding" in str(message):
+            response = "I've created the initial code and submitted a PR.\n<result>Done</result>"
             print(f"MockAgentAdapter response for coding: {response}")
             return response
+        elif "CodeReviewInit" in str(message):
+            response = "I've verified access to the repository and I'm ready to review.\n<result>Done</result>"
+            print(f"MockAgentAdapter response for CodeReviewInit: {response}")
+            return response
+        elif "CodeReviewModification" in str(message):
+            response = "The code looks good, all checks passed.\n<result>Done</result>"
+            print(f"MockAgentAdapter response for CodeReviewModification: {response}")
+            return response
+        elif "TestErrorSummary" in str(message):
+            response = "All tests passed.\n<result>Done</result>"
+            print(f"MockAgentAdapter response for TestErrorSummary: {response}")
+            return response
+        elif "TestModification" in str(message):
+            response = "Tests are now passing.\n<result>Done</result>"
+            print(f"MockAgentAdapter response for TestModification: {response}")
+            return response
         elif "EnvironmentDoc" in str(message):
-            response = "requirements.txt\n```\nrequests==2.25.1\nnumpy==1.21.0\n```"
+            response = "requirements.txt\n```\nrequests==2.25.1\nnumpy==1.21.0\n```\n<result>Done</result>"
             print(f"MockAgentAdapter response for environment doc: {response}")
             return response
-        elif "Manual" in str(message):
-            response = "manual.md\n```\n# Simple Calculator App\n\nThis is a simple calculator app.\n```"
-            print(f"MockAgentAdapter response for manual: {response}")
-            return response
         else:
-            response = "Mock response to: " + str(message)[:50] + "..."
+            response = "Mock response.\n<result>Done</result>"
             print(f"MockAgentAdapter default response: {response}")
             return response
 
