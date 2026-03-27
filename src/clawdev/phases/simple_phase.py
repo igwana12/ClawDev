@@ -30,7 +30,7 @@ class SimplePhase(Phase):
         """
         logger.debug("[SimplePhase] execute() phase=%s", self.phase_name)
 
-        if self.notification_mode:
+        if self.notification_mode or not self.assistant_role:
             return self._execute_notification(env, agent_adapter)
 
         return self._execute_dialog(env, agent_adapter)
