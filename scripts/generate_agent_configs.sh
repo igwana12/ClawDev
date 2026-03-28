@@ -19,8 +19,65 @@ AGENTS=(
   "software_test_engineer"
 )
 
+echo "=== Checking Gitea users ==="
+echo ""
+
+existing_users=()
+missing_users=()
+
+for agent in "${AGENTS[@]}"; do
+  if docker exec --user 1000:1000 $GITEA_CONTAINER gitea admin user list 2>/dev/null | grep -q "^.*[[:space:]]$agent[[:space:]]"; then
+    existing_users+=("$agent")
+    echo "[EXISTS] $agent"
+  else
+    missing_users+=("$agent")
+    echo "[MISSING] $agent"
+  fi
+done
+
+echo ""
+
+if [[ ${#missing_users[@]} -gt 0 ]]; then
+  echo "Creating missing users..."
+  for agent in "${missing_users[@]}"; do
+    echo "  Creating $agent..."
+    docker exec --user 1000:1000 $GITEA_CONTAINER gitea admin user create \
+      --username "$agent" \
+      --password "test123456" \
+      --email "${agent}@gitea.local" 2>/dev/null
+    echo "    Created: $agent"
+  done
+fi
+
+if [[ ${#existing_users[@]} -gt 0 ]]; then
+  echo ""
+  echo "Warning: ${#existing_users[@]} users already exist: ${existing_users[*]}"
+  echo "This will delete existing 'clawdev' tokens for these users."
+  echo ""
+  read -p "Continue? (y/N): " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 1
+  fi
+fi
+
+echo ""
+echo "=== Deleting existing clawdev tokens ==="
+for agent in "${AGENTS[@]}"; do
+  user_id=$(docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'SELECT id FROM user WHERE name=\"$agent\";'" 2>/dev/null)
+  if [[ -n "$user_id" ]]; then
+    docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'DELETE FROM access_token WHERE uid=$user_id AND name=\"clawdev\";'" 2>/dev/null
+    echo "  Deleted clawdev token for: $agent"
+  fi
+done
+
+echo ""
+echo "=== Generating tokens and configs ==="
+
 TEMP_DIR=$(mktemp -d)
-echo "Generating configs to: $TEMP_DIR"
+echo "Output: $TEMP_DIR"
+echo ""
 
 for agent in "${AGENTS[@]}"; do
   echo "Creating token for $agent..."
@@ -77,3 +134,6 @@ done
 echo ""
 echo "Done! Total: ${#AGENTS[@]} agents"
 echo "Output: $TEMP_DIR"
+echo ""
+echo "To deploy to workspace, run:"
+echo "  GENERATED_CREDENTIALS_DIR=$TEMP_DIR ./scripts/deploy_agent_credentials.sh"
