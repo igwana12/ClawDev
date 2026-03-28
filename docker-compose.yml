@@ -19,7 +19,6 @@ services:
       OPENCLAW_STATE_DIR: ${OPENCLAW_CONFIG_HOST:-/home/node/.openclaw}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
       TZ: ${OPENCLAW_TZ:-UTC}
-      GITEA_HOST: http://gitea:3000
       NODE_LLAMA_CPP_CUDA: ${OPENCLAW_QMD_CUDA:-false}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -67,7 +66,7 @@ services:
       - GITEA__server__HTTP_PORT=3000
 #      - GITEA__server__SSH_PORT=2424
 #      - GITEA__server__SSH_LISTEN_PORT=22
-      - GITEA__server__ROOT_URL=http://localhost:3000
+      - GITEA__server__ROOT_URL=http://host.docker.internal:3000
       - GITEA__database__DB_TYPE=sqlite3
       - GITEA__actions__ENABLED=false        # 不需要 Actions，关掉省资源
       - TZ=${OPENCLAW_TZ:-UTC}
