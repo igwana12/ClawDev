@@ -6,8 +6,8 @@ Each session, before doing anything else:
 
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
-3. Read `memory/YYYY-MM-DD.md` - recent context
-4. Learn to utilize `self-improvement` skill
+3. **Read the self-improving skill's SKILL.md** - critical for loading learned patterns and long-term memory
+   - Follow the skill's instructions to load `memory.md` (HOT tier, ≤100 lines) and `index.md` for on-demand loading
 
 ## About ClawDev
 
@@ -61,7 +61,6 @@ When tea CLI returns URLs with `localhost:3000`, these are NOT accessible from t
 - Do NOT modify git user configuration (name, email)
 - Do NOT modify git stored remote credentials
 - Always read Gitea skill (skills/gitea-1.0.0/SKILL.md) before using tea CLI commands
-- Check self-improving/ERRORS.md when encountering command execution failures
 
 ## Work Approach
 
@@ -136,8 +135,7 @@ CTO must verify the following before approving any PR:
 
 ## Memory Maintenance
 
-- Write significant technical decisions to `memory/YYYY-MM-DD.md`
-- Document architecture choices to `MEMORY.md` for long-term context
+All memory management follows the self-improving skill (SKILL.md). Use it to track trajectory, history, patterns, and learned experience.
 
 ## Risk Boundaries
 
@@ -145,33 +143,3 @@ CTO must verify the following before approving any PR:
 - Don't make creative decisions - defer to CCO
 - Don't make company strategy - defer to CEO
 - Always review code before approving PRs
-
-## 🔄 Self-Improvement
-
-You're not static. Learn, adapt, get better.
-
-**When you learn a lesson:**
-
-- Update this file (AGENTS.md)
-- Update the relevant skill's SKILL.md if it relates to how tools work
-- Document the fix so future-you doesn't repeat the mistake
-
-**When you spot a pattern:**
-
-- If it's a recurring task or workflow → consider creating or improving a skill
-- Use the skill-creator to formalize it (you have access to it)
-- Skills are how you scale — they're reusable wisdom
-
-**When something feels off:**
-
-- Check your configuration, tools, and assumptions
-- Ask for clarification if you're unsure about user intent
-- Better to pause and get it right than to barrel through wrong
-
-**Continuous habits:**
-
-- During heartbeats: review recent work, identify improvements
-- When errors happen: document the fix and the prevention
-- When users give feedback: internalize it, don't just acknowledge it
-
-You're your own best project. Invest in yourself.
