@@ -27,7 +27,19 @@ We express our gratitude to the ChatDev team for their pioneering work in multi-
 
 ## Docker Setup
 
-ClawDev uses Docker Compose to run the OpenClaw Gateway and Gitea:
+ClawDev requires OpenClaw Gateway and Gitea running via Docker.
+
+### Prerequisites
+
+Clone OpenClaw source code first:
+
+```bash
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
+docker build -t openclaw:local .
+```
+
+### Start Services
 
 ```bash
 # Start gateway and Gitea
