@@ -63,13 +63,13 @@ class TestPhaseConfigConsistency:
         [
             ("DemandAnalysis", "Chief Product Officer", "Chief Executive Officer"),
             ("LanguageChoose", "Chief Technology Officer", "Chief Executive Officer"),
-            ("Coding", "Programmer", "Chief Technology Officer"),
-            ("CodeComplete", "Programmer", "Chief Technology Officer"),
-            ("CodeReviewComment", "Code Reviewer", "Programmer"),
+            ("CodingInit", "Programmer", "Chief Technology Officer"),
+            ("CodingImprove", "Programmer", "Chief Technology Officer"),
+            ("CodeReviewInit", "Code Reviewer", "Chief Technology Officer"),
             ("CodeReviewModification", "Programmer", "Code Reviewer"),
-            ("TestErrorSummary", "Programmer", "Software Test Engineer"),
-            ("TestModification", "Programmer", "Software Test Engineer"),
-            ("EnvironmentDoc", "Programmer", "Chief Technology Officer"),
+            ("TestRunInit", "Software Test Engineer", "Chief Technology Officer"),
+            ("TestRun", "Programmer", "Software Test Engineer"),
+            ("CodingDoc", "Programmer", "Chief Technology Officer"),
         ],
     )
     def test_phase_role_mapping(
@@ -94,13 +94,13 @@ class TestAgentRouting:
         [
             "DemandAnalysis",
             "LanguageChoose",
-            "Coding",
-            "CodeComplete",
-            "CodeReviewComment",
+            "CodingInit",
+            "CodingImprove",
+            "CodeReviewInit",
             "CodeReviewModification",
-            "TestErrorSummary",
-            "TestModification",
-            "EnvironmentDoc",
+            "TestRunInit",
+            "TestRun",
+            "CodingDoc",
         ],
     )
     def test_phase_routes_to_correct_agent(

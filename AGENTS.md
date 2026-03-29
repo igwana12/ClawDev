@@ -175,6 +175,31 @@ The dialog continues until the `<result>` tag is detected in a response.
 - Single dialog phase execution
 - Executes one conversation between two agents
 - Terminates when `<result>` tag is detected
+- Supports two modes:
+
+##### Dialog mode (default)
+- Two agents have a real conversation
+- **user_role**: Initiates the conversation by sending instructions to assistant_role
+- **assistant_role**: Receives instructions and responds
+- **initiator_prompt** MUST instruct user_role to "send a message to assistant_role" to start the dialog
+- Example initiator_prompt:
+  ```
+  [MESSAGE] Send a message to {assistant_role} to begin discussing the current task.
+  [CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.
+  ```
+
+##### Notification mode (`notification_mode: true`)
+- Sends one message to user_role and ends immediately
+- The message content directly instructs the user_role what specific task they need to complete
+- No dialogue needed - user_role receives the task and acts on it in subsequent phases
+- **user_role**: The agent who will DO the task (not assistant_role!)
+- **assistant_role**: Not used (can be omitted)
+- Example initiator_prompt:
+  ```
+  [TASK] Design the project architecture and write framework code.
+  [USER REQUIREMENTS] {task}
+  ```
+- Note: OpenClaw agents have internal memory, so the task persists in their context
 
 #### ComposedPhase (`src/clawdev/phases/composed_phase.py`)
 - Multiple sub-phases executed in sequence
@@ -237,18 +262,29 @@ Session context is sent to agents during initialization via `ChatChain.make_recr
 
 ### Coding Workflow
 
-The Coding phase is a ComposedPhase consisting of:
+The Coding phase is a ComposedPhase consisting of three sub-phases:
 
-1. **CodingInit**: CTO creates Gitea repository
+1. **CodingDesign** (notification mode): Direct ACP message to CTO
+   - ACP directly sends an initial prompt to CTO with architecture design task
+   - The initiator_prompt directly instructs CTO what to do (architecture design, framework code)
+   - CTO has internal memory, so the task persists in their context
+   - Phase ends immediately after sending the instruction
+   - No other roles involved - just CTO receiving the task
+   - Subsequent phases (CodingInit, CodingImprove) will leverage CTO's memory of the architecture design
+
+2. **CodingInit**: CTO creates Gitea repository
    - Creates public repo using `tea repo create`
-   - Adds Programmer as repository member
-   - Notifies Programmer of repository URL
+   - Adds Programmer as repository member using `tea repo add-collaborator`
+   - Notifies Programmer of repository URL and confirms access
+   - This is a dialog phase - CTO and Programmer communicate
 
-2. **CodingImprove**: Programmer writes code and creates PR
+3. **CodingImprove**: Programmer writes code and creates PR
+   - CTO guides Programmer on code improvements
    - Creates new branch for each task
    - Writes/modifies code
    - Creates PR using `tea pr create`
    - CTO reviews and approves PR
+   - Repeats until all code is complete
 
 ### Agent Adapter
 

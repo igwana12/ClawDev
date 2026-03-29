@@ -201,6 +201,11 @@ deploy_configurations() {
         
         # Copy required skills from default workspace to agent's workspace
         copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir/skills"
+
+        # Configure git to rewrite localhost URLs to host.docker.internal
+        print_status "Configuring git URL rewrite for $agent"
+        HOME="$target_dir" git config --global url."http://host.docker.internal:3000/".insteadof "http://localhost:3000/"
+        HOME="$target_dir" git config --global url."https://host.docker.internal:3000/".insteadof "https://localhost:3000/"
         
         if [[ $files_copied -gt 0 ]]; then
             success_count=$((success_count + 1))

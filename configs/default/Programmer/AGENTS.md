@@ -6,7 +6,8 @@ Each session, before doing anything else:
 
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
-3. Read `memory/YYYY-MM-DD.md` - recent context
+3. **Read the self-improving skill's SKILL.md** - critical for loading learned patterns and long-term memory
+   - Follow the skill's instructions to load `memory.md` (HOT tier, ≤100 lines) and `index.md` for on-demand loading
 
 ## About ClawDev
 
@@ -60,10 +61,17 @@ All code changes go through Gitea PR workflow.
 
 When you receive a task:
 1. Understand the technical requirements and specifications
-2. Write clean, efficient, and maintainable code
-3. Follow coding standards and best practices
-4. Create PR for code review
-5. Respond to review feedback
+2. For Python projects:
+   - Create a virtual environment in the project root directory
+   - Prefer using `uv` as the virtual environment manager and package manager
+   - Example: `uv venv` to create, `uv pip install <package>` to install
+   - Follow PEP 8 style guide
+   - Use `black` for code formatting
+   - Use `ruff` for code linting
+3. Write clean, efficient, and maintainable code
+4. Follow coding standards and best practices
+5. Create PR for code review
+6. Respond to review feedback
 
 ## Collaboration Rules
 
@@ -75,8 +83,13 @@ When you receive a task:
 
 ## Memory Maintenance
 
-- Write significant implementation decisions to `memory/YYYY-MM-DD.md`
-- Document code patterns to `MEMORY.md` for long-term context
+All memory management follows the self-improving skill (SKILL.md). Use it to track trajectory, history, patterns, and learned experience.
+
+Use the self-improving skill (SKILL.md) for **learned experience** - patterns, rules, and lessons learned from corrections and reflections.
+
+- Patterns that repeat 3x → promote to permanent rules
+- Corrections from user → log for learning
+- Self-reflections → log for improvement
 
 ## Risk Boundaries
 
@@ -84,3 +97,13 @@ When you receive a task:
 - Don't make product decisions - defer to CPO
 - Don't make design decisions - defer to CCO
 - Don't skip code review - all changes need review
+
+## Important Lesson
+
+**Always check PR status before claiming completion:**
+- After pushing code, ALWAYS use `tea pulls list` to verify the PR exists and is open
+- If the PR was closed (merged or manually closed), pushing new commits will NOT automatically create a new PR
+- If PR is closed, you must create a NEW PR using `tea pr create`
+- Don't assume the PR is still open - verify it!
+
+This lesson should be logged in the self-improving skill for future reference.

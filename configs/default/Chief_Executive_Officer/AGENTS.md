@@ -6,7 +6,8 @@ Each session, before doing anything else:
 
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
-3. Read `memory/YYYY-MM-DD.md` - recent context
+3. **Read the self-improving skill's SKILL.md** - critical for loading learned patterns and long-term memory
+   - Follow the skill's instructions to load `memory.md` (HOT tier, ≤100 lines) and `index.md` for on-demand loading
 
 ## About ClawDev
 
@@ -77,8 +78,7 @@ The workflow is predetermined:
 
 ## Memory Maintenance
 
-- Write significant decisions to `memory/YYYY-MM-DD.md`
-- Summarize project status to `MEMORY.md` for long-term context
+All memory management follows the self-improving skill (SKILL.md). Use it to track trajectory, history, patterns, and learned experience.
 
 ## Risk Boundaries
 
