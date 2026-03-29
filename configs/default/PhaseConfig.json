@@ -57,41 +57,80 @@
     "context": "User Request: {task}\nSelected Modality: {modality}\n\nConsider: project complexity, maintainability, library availability, performance requirements",
     "dialog_prompt": "{the_other_role} said: {content}"
   },
+  "CodingDesign": {
+    "notification_mode": true,
+    "user_role_name": "Chief Technology Officer",
+    "initiator_prompt": [
+      "[TASK] Notify CTO to design project architecture and write framework code.",
+
+      "[USER REQUIREMENTS]",
+      "- Task: {task}",
+      "- Modality: {modality}",
+      "- Language: {language}",
+      "- Description: {description}",
+
+      "[IMPORTANT]",
+      "- Your workspace is already configured with git and tea CLI",
+      "- You can refer to Gitea skill for tea usage details",
+
+      "[MESSAGE] Send a message to {assistant_role} to notify them to begin architecture design and framework code writing.",
+
+      "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
+      "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
+
+      "[INSTRUCT {assistant_role}] The message must:",
+      "- Include the user requirements: {task}",
+      "- Include the modality: {modality}",
+      "- Include the language: {language}",
+      "- Include the description: {description}",
+      "- Ask CTO to design architecture and write framework code",
+      "- Ask CTO to submit the framework as a PR (do NOT merge)",
+      "- Do NOT include <result> tags with content in this message",
+      "  Example WRONG: \"You MUST NOT output <result>Done</result>\"",
+      "  Example CORRECT: \"DO NOT output any <result> tags\"",
+
+      "[RESULT TAGS] This is a notification phase.",
+      "- After sending the notification message, immediately output <result>Done</result>",
+      "- CTO's actual work will happen in subsequent phases"
+    ],
+    "context": "User Request: {task}\nModality: {modality}\nLanguage: {language}\nDescription: {description}",
+    "dialog_prompt": "{the_other_role} said: {content}"
+  },
   "CodingInit": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Technology Officer",
-    "max_dialog_turns": 4,
+    "notification_mode": true,
     "initiator_prompt": [
       "[TASK] Create a new repository on Gitea for this project and add Programmer as a collaborator.",
-      "",
+
       "[IMPORTANT]",
       "- The repository MUST be PUBLIC (non-private)",
       "- Your workspace is already configured with git and tea CLI",
       "- You can refer to Gitea skill for tea usage details",
-      "",
+      "- Note: CTO has already done the architecture design and created framework code in CodingDesign phase",
+
       "[GITEA WORKFLOW]",
       "1. Use 'tea repo create' to create a new PUBLIC repository on Gitea (omit --private flag for public)",
-      "2. Use 'tea api' to add Programmer as a collaborator to the repository",
+      "2. Use 'tea repo add-collaborator' to add Programmer as a collaborator to the repository",
       "3. Reply with the repository URL and confirm Programmer has been added",
-      "",
-      "[MESSAGE] After the repo is created, send a message to {assistant_role} to let them know the repo URL and begin setting up the repository.",
-      "",
+
+      "[MESSAGE] After the repo is created and collaborator is added, send a message to {assistant_role}.",
+
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their response. DO NOT write both sides of the conversation.",
-      "",
+
       "[INSTRUCT {assistant_role}] The message must meet the following requirements:",
       "- MUST include the repository URL",
       "- Ask {assistant_role} to confirm whether they can access the repository",
-      "- Describe the user requirements to {assistant_role} and ask them to write the initial code and submit it as a PR",
-      "- Tell {assistant_role} this is ONLY the INITIAL phase - they don't need to complete all code at once",
-      "- Suggest {assistant_role} can first design the code structure or write one module/file, remaining work will be done in subsequent CodingImprove phase",
+      "- Tell {assistant_role} that CTO has already created the framework code in a PR",
+      "- Ask {assistant_role} to review and build upon the existing framework code",
       "- Tell {assistant_role} that all future code changes must be submitted via PR for your review",
       "- Tell {assistant_role} they must NOT output <result> tags. Whether this phase ends is determined solely by you (CTO)",
       "- Do NOT include <result> tags with content in this message, as this will skip the phase",
       "  Example WRONG: \"You MUST NOT output <result>Done</result>\"",
       "  Example CORRECT: \"DO NOT output any <result> tags\"",
-      "",
-      "[TERMINATION] After confirming {assistant_role} can access the repository and has submitted the initial PR that meets quality requirements, accept this PR and output <result>Done</result>. Otherwise, ask them to rewrite and submit a new PR."
+
+      "[TERMINATION] After confirming {assistant_role} can access the repository and has submitted/updated the PR based on the framework, output <result>Done</result>."
     ],
     "context": "User Request: {task}\nDescription: {description}\nTarget: {modality}\nLanguage: {language}",
     "dialog_prompt": "{the_other_role} said: {content}"
@@ -188,16 +227,22 @@
       "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
 
       "[INSTRUCT {assistant_role}] Each round, you must:",
-      "1. Check the current PR status using 'tea pulls'",
-      "2. Review the code changes",
-      "3. If code has issues: ask Programmer to fix them",
-      "4. If code is qualified and meets user requirements: output <result>Done</result>",
+      "1. First check if there is an open PR: use 'tea pulls list' to find PRs",
+      "2. If NO PR exists: Analyze the current code in the repository for problems:",
+      "   - Read the code files to understand the implementation",
+      "   - Identify issues, bugs, or areas for improvement",
+      "   - Tell Programmer what problems exist and need fixing",
+      "3. If PR exists: Review the code changes in the PR:",
+      "   - Check what problems the PR would introduce if merged",
+      "   - Identify any issues with the proposed changes",
+      "4. If code has issues: ask Programmer to fix them",
+      "5. If code is qualified and meets user requirements: output <result>Done</result>",
       "- Do NOT output <result> tags until review is complete",
       "  Example WRONG: \"You MUST NOT output <result>Done</result>\"",
       "  Example CORRECT: \"DO NOT output any <result> tags\"",
 
       "[RESULT TAGS] Termination conditions:",
-      "- Do NOT output <result> tags until code review is complete and PR is merged",
+      "- Do NOT output <result> tags until code review is complete and all issues are resolved",
       "- When code meets requirements and no issues remain, output <result>Done</result>",
 
       "[CHECKLIST]",

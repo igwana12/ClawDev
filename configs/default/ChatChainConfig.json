@@ -17,6 +17,10 @@
             "cycleNum": 1,
             "composition": [
                 {
+                    "phase": "CodingDesign",
+                    "phaseType": "SimplePhase"
+                },
+                {
                     "phase": "CodingInit",
                     "phaseType": "SimplePhase"
                 },
