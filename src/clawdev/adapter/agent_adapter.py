@@ -75,7 +75,7 @@ class AgentAdapter:
 
         agent = self.get_agent(role)
         logger.debug("[AgentAdapter] Calling agent.step()")
-        response = agent.step(message)
+        response = agent.step(message, timeout=3600)
         logger.debug("[AgentAdapter] agent.step() returned %d chars", len(response))
 
         return response
