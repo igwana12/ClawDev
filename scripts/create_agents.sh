@@ -70,7 +70,7 @@ configure_agent_sandbox() {
     python3 << EOF
 import json
 
-config_path = "/home/anzz/.openclaw/openclaw.json"
+config_path = os.path.expanduser(os.environ.get("OPENCLAW_CONFIG_HOST", "~/.openclaw/openclaw.json"))
 with open(config_path, "r") as f:
     config = json.load(f)
 
@@ -113,7 +113,7 @@ create_agent() {
     
     # Create workspace directory - convert to lowercase, keep underscores
     local agent_id=$(echo "$agent_name" | tr '[:upper:]' '[:lower:]')
-    local workspace_dir="/home/anzz/.openclaw/workspace-${agent_id}"
+    local workspace_dir="${OPENCLAW_CONFIG_HOST:-$HOME/.openclaw}/workspace-${agent_id}"
     mkdir -p "$workspace_dir"
     
     # Use openclaw agents add command to create the agent in non-interactive mode
