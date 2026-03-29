@@ -132,14 +132,7 @@ class ChatChain:
 
     def post_processing(self) -> None:
         """Perform post-processing steps after chain execution."""
-        if self.env is None:
-            raise RuntimeError("Environment not initialized")
-
-        # Write all generated files
-        self.env.write_meta()
-        self.env.write_codes()
-        self.env.write_manual()
-        self.env.write_requirements()
+        pass
 
     def run(self, task_prompt: str, project_name: str) -> None:
         """

@@ -12,14 +12,14 @@ import json
 class ChatEnv:
     """Environment that tracks the state of a software development project."""
 
-    def __init__(self, directory: str):
+    def __init__(self, project_name: str):
         """
-        Initialize environment with project directory.
+        Initialize environment for a project.
 
         Args:
-            directory: Project directory path
+            project_name: Name of the project
         """
-        self.directory = directory
+        self.project_name = project_name
         self.task_prompt = ""
         self.modality = ""  # Application, Website, Document, etc.
         self.language = ""  # Python, JavaScript, etc.
@@ -34,9 +34,6 @@ class ChatEnv:
         self.unimplemented_file = ""
         self.description = ""
         self.gui = ""  # GUI-related information
-
-        # Create project directory if it doesn't exist
-        os.makedirs(directory, exist_ok=True)
 
     def update_codes(self, filename: str, content: str) -> None:
         """
@@ -73,45 +70,3 @@ class ChatEnv:
         # This would check against registered roles
         # For now, return True to avoid breaking existing logic
         return True
-
-    def write_meta(self) -> None:
-        """Write metadata file for the project."""
-        meta_path = os.path.join(self.directory, "meta.txt")
-        meta_data = {
-            "task": self.task_prompt,
-            "modality": self.modality,
-            "language": self.language,
-            "requirements": self.requirements,
-        }
-
-        with open(meta_path, "w", encoding="utf-8") as f:
-            json.dump(meta_data, f, indent=2, ensure_ascii=False)
-
-    def write_codes(self) -> None:
-        """Write all code files to the project directory."""
-        for filename, content in self.codes.items():
-            file_path = os.path.join(self.directory, filename)
-            # Create subdirectories if needed
-            os.makedirs(
-                os.path.dirname(file_path)
-                if os.path.dirname(filename)
-                else self.directory,
-                exist_ok=True,
-            )
-
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(content)
-
-    def write_manual(self) -> None:
-        """Write user manual to the project directory."""
-        if self.manuals:
-            manual_path = os.path.join(self.directory, "manual.md")
-            with open(manual_path, "w", encoding="utf-8") as f:
-                f.write(self.manuals)
-
-    def write_requirements(self) -> None:
-        """Write requirements file to the project directory."""
-        if self.requirements:
-            req_path = os.path.join(self.directory, "requirements.txt")
-            with open(req_path, "w", encoding="utf-8") as f:
-                f.write(self.requirements)
