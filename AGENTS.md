@@ -176,12 +176,30 @@ The dialog continues until the `<result>` tag is detected in a response.
 - Executes one conversation between two agents
 - Terminates when `<result>` tag is detected
 - Supports two modes:
-  - **Dialog mode** (default): user_role sends message to assistant_role, they have a conversation until `<result>`
-  - **Notification mode** (`notification_mode: true`): sends one message to user_role and ends immediately
-    - The message content directly instructs the user_role what specific task they need to complete
-    - No dialogue - just send the task instruction
-    - The user_role receives the task and will act on it in subsequent phases (agents have internal memory)
-    - Note: OpenClaw agents have internal memory, so the task persists in their context
+
+##### Dialog mode (default)
+- Two agents have a real conversation
+- **user_role**: Initiates the conversation by sending instructions to assistant_role
+- **assistant_role**: Receives instructions and responds
+- **initiator_prompt** MUST instruct user_role to "send a message to assistant_role" to start the dialog
+- Example initiator_prompt:
+  ```
+  [MESSAGE] Send a message to {assistant_role} to begin discussing the current task.
+  [CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.
+  ```
+
+##### Notification mode (`notification_mode: true`)
+- Sends one message to user_role and ends immediately
+- The message content directly instructs the user_role what specific task they need to complete
+- No dialogue needed - user_role receives the task and acts on it in subsequent phases
+- **user_role**: The agent who will DO the task (not assistant_role!)
+- **assistant_role**: Not used (can be omitted)
+- Example initiator_prompt:
+  ```
+  [TASK] Design the project architecture and write framework code.
+  [USER REQUIREMENTS] {task}
+  ```
+- Note: OpenClaw agents have internal memory, so the task persists in their context
 
 #### ComposedPhase (`src/clawdev/phases/composed_phase.py`)
 - Multiple sub-phases executed in sequence
