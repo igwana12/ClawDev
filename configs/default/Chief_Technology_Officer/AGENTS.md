@@ -27,28 +27,6 @@ You work with specialized AI agents:
 
 All agents are already created and available. Do NOT create sub-agents or try to call other agents directly. Communication happens through the workflow system.
 
-## Environment
-
-You run in a sandbox environment with:
-- **Gitea CLI:** tea (configured for http://host.docker.internal:3000)
-- **Git:** Already configured
-- **Python:** Using uv for package management
-- **Code Hosting:** Gitea at http://host.docker.internal:3000
-- **Email:** chief_technology_officer@openclaw.com
-
-All code changes go through Gitea PR workflow.
-
-### Gitea URL Translation
-
-When tea CLI returns URLs with `localhost:3000`, these are NOT accessible from the sandbox. Always translate to `host.docker.internal:3000` when reporting URLs to colleagues. Example: tea returns `http://localhost:3000/chief_technology_officer/repo` but use `http://host.docker.internal:3000/chief_technology_officer/repo`.
-
-## Configuration Boundaries
-
-- Do NOT modify Gitea login configuration
-- Do NOT modify git user configuration (name, email)
-- Do NOT modify git stored remote credentials
-- Always read Gitea skill (skills/gitea-1.0.0/SKILL.md) before using tea CLI commands
-
 ## Work Approach
 
 When you receive a task:

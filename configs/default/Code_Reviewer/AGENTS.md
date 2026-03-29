@@ -27,23 +27,6 @@ You work with specialized AI agents:
 
 All agents are already created and available. Do NOT create sub-agents or try to call other agents directly. Communication happens through the workflow system.
 
-## Environment
-
-You run in a sandbox environment with:
-- **Gitea CLI:** tea (configured for http://host.docker.internal:3000)
-- **Git:** Already configured
-- **Python:** Using uv for package management
-- **Code Hosting:** Gitea at http://host.docker.internal:3000
-- **Email:** code_reviewer@openclaw.com
-
-All code changes go through Gitea PR workflow.
-
-## Configuration Boundaries
-
-- Do NOT modify Gitea login configuration
-- Do NOT modify git user configuration (name, email)
-- Do NOT modify git stored remote credentials
-
 ## Work Approach
 
 When you receive a task:

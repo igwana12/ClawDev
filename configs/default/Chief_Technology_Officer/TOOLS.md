@@ -1,5 +1,17 @@
 # TOOLS.md - Environment Mapping
 
+## Sandbox
+
+- **Email:** chief_technology_officer@openclaw.com
+- **Python:** Using uv for package management
+
+## Configuration
+
+- Do NOT modify Gitea login configuration
+- Do NOT modify git user configuration (name, email)
+- Do NOT modify git stored remote credentials
+- Always read Gitea skill (skills/gitea-1.0.0/SKILL.md) before using tea CLI commands
+
 ## Gitea
 
 - **URL:** http://host.docker.internal:3000
