@@ -61,7 +61,7 @@
     "notification_mode": true,
     "user_role_name": "Chief Technology Officer",
     "initiator_prompt": [
-      "[TASK] Notify CTO to design project architecture and write framework code.",
+      "[TASK] Design the project architecture and write framework code.",
 
       "[USER REQUIREMENTS]",
       "- Task: {task}",
@@ -72,34 +72,18 @@
       "[IMPORTANT]",
       "- Your workspace is already configured with git and tea CLI",
       "- You can refer to Gitea skill for tea usage details",
-
-      "[MESSAGE] Send a message to {assistant_role} to notify them to begin architecture design and framework code writing.",
-
-      "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
-      "Your message will be sent to {assistant_role}. Wait for their actual response. DO NOT write both sides of the conversation.",
-
-      "[INSTRUCT {assistant_role}] The message must:",
-      "- Include the user requirements: {task}",
-      "- Include the modality: {modality}",
-      "- Include the language: {language}",
-      "- Include the description: {description}",
-      "- Ask CTO to design architecture and write framework code",
-      "- Ask CTO to submit the framework as a PR (do NOT merge)",
-      "- Do NOT include <result> tags with content in this message",
-      "  Example WRONG: \"You MUST NOT output <result>Done</result>\"",
-      "  Example CORRECT: \"DO NOT output any <result> tags\"",
+      "- CTO has internal memory, the task persists in context",
 
       "[RESULT TAGS] This is a notification phase.",
-      "- After sending the notification message, immediately output <result>Done</result>",
-      "- CTO's actual work will happen in subsequent phases"
+      "- After receiving this task, immediately output <result>Done</result>",
+      "- CTO's actual work (design and PR creation) will happen in subsequent phases"
     ],
-    "context": "User Request: {task}\nModality: {modality}\nLanguage: {language}\nDescription: {description}",
-    "dialog_prompt": "{the_other_role} said: {content}"
+    "context": "User Request: {task}\nModality: {modality}\nLanguage: {language}\nDescription: {description}"
   },
   "CodingInit": {
     "assistant_role_name": "Programmer",
     "user_role_name": "Chief Technology Officer",
-    "notification_mode": true,
+    "max_dialog_turns": 4,
     "initiator_prompt": [
       "[TASK] Create a new repository on Gitea for this project and add Programmer as a collaborator.",
 
@@ -107,12 +91,11 @@
       "- The repository MUST be PUBLIC (non-private)",
       "- Your workspace is already configured with git and tea CLI",
       "- You can refer to Gitea skill for tea usage details",
-      "- Note: CTO has already done the architecture design and created framework code in CodingDesign phase",
+      "- Note: CTO has already received the architecture design task in CodingDesign phase",
 
       "[GITEA WORKFLOW]",
       "1. Use 'tea repo create' to create a new PUBLIC repository on Gitea (omit --private flag for public)",
       "2. Use 'tea repo add-collaborator' to add Programmer as a collaborator to the repository",
-      "3. Reply with the repository URL and confirm Programmer has been added",
 
       "[MESSAGE] After the repo is created and collaborator is added, send a message to {assistant_role}.",
 
