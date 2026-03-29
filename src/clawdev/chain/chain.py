@@ -61,20 +61,46 @@ class ChatChain:
         self.env = ChatEnv(project_name)
         self.env.task_prompt = task_prompt
 
+    def _get_required_roles(self) -> set:
+        """Extract unique roles from chain and phase configurations."""
+        roles = set()
+        for phase_item in self.chain_config.get("chain", []):
+            phase_type = phase_item.get("phaseType")
+            if phase_type == "SimplePhase":
+                phase_name = phase_item.get("phase")
+                phase_config = self.phase_config.get(phase_name, {})
+                if phase_config:
+                    if phase_config.get("assistant_role_name"):
+                        roles.add(phase_config["assistant_role_name"])
+                    if phase_config.get("user_role_name"):
+                        roles.add(phase_config["user_role_name"])
+            elif phase_type == "ComposedPhase":
+                for sub_phase in phase_item.get("composition", []):
+                    sub_phase_name = sub_phase.get("phase")
+                    sub_config = self.phase_config.get(sub_phase_name, {})
+                    if sub_config:
+                        if sub_config.get("assistant_role_name"):
+                            roles.add(sub_config["assistant_role_name"])
+                        if sub_config.get("user_role_name"):
+                            roles.add(sub_config["user_role_name"])
+        return roles
+
     def make_recruitment(self) -> None:
         """Register roles in the environment and set up agent contexts."""
         if self.env is None:
             raise RuntimeError("Environment not initialized")
 
         session_context_template = self.chain_config.get("session_context_template")
-        all_roles = list(self.agent_adapter.agent_configs.keys())
+        required_roles = self._get_required_roles()
+
+        logger.info("[ChatChain] Required roles: %s", required_roles)
 
         if session_context_template and self.env.task_prompt:
             context_lines = session_context_template
             if isinstance(context_lines, list):
                 context_lines = "\n".join(context_lines)
-            for role in all_roles:
-                colleagues = [r for r in all_roles if r != role]
+            for role in required_roles:
+                colleagues = [r for r in required_roles if r != role]
                 colleagues_str = (
                     ", ".join(colleagues[:-1]) + ", and " + colleagues[-1]
                     if len(colleagues) > 1
@@ -87,7 +113,7 @@ class ChatChain:
                 )
                 self.agent_adapter.set_session_context(role, session_context)
 
-        for role in all_roles:
+        for role in required_roles:
             self.agent_adapter.get_agent(role)
 
     def execute_chain(self) -> None:
