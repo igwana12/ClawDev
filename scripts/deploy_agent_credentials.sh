@@ -22,7 +22,7 @@ else
   fi
 fi
 
-TARGET_DIR="/home/anzz/.openclaw"
+TARGET_DIR="${OPENCLAW_CONFIG_HOST:-$HOME/.openclaw}"
 
 AGENTS=(
   "chief_creative_officer"
