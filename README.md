@@ -1,26 +1,28 @@
 # ClawDev
 
 <p align="center">
-  <img src='misc/logo.png' width=400>
-</p>
-
-<p align="center">
   Multi-agent software development framework based on OpenClaw ACP
 </p>
 
 ## Overview
 
-ClawDev is a multi-agent software development framework that combines OpenClaw ACP (Agent Client Protocol) with a structured development workflow. It provides AI agents with different roles (CEO, CTO, Programmer, Reviewer, Tester) that collaborate through specialized phases including demand analysis, coding, testing, and documentation.
+ClawDev is a multi-agent software development framework that combines OpenClaw ACP (Agent Client Protocol) with a structured development workflow. It provides AI agents with different roles (CEO, CPO, CTO, Programmer, Code Reviewer, Software Test Engineer, etc.) that collaborate through specialized phases including demand analysis, coding, testing, and documentation.
 
 ## Acknowledgment
 
 ClawDev is inspired by and builds upon [ChatDev](https://github.com/OpenBMB/ChatDev), a virtual software company operated by intelligent agents. ChatDev was developed by the [OpenBMB](https://openbmb.thudm.cn/) team and introduced in their paper:
 
 > **ChatDev: Communicative Agents for Software Development**
-> 
+>
 > Paper: https://arxiv.org/abs/2307.07924
 
 We express our gratitude to the ChatDev team for their pioneering work in multi-agent collaborative software development.
+
+## Requirements
+
+- Python 3.10+
+- OpenClaw Gateway running at `ws://127.0.0.1:18789`
+- OpenClaw agents configured for each role
 
 ## Installation
 
@@ -31,7 +33,6 @@ pip install -e .
 ## Quick Start
 
 ```python
-from openclaw_acp import OpenClawAgent
 from clawdev import ChatChain, AgentAdapter
 
 agent_configs = {
@@ -39,6 +40,8 @@ agent_configs = {
     "Chief Product Officer": "chief_product_officer",
     "Chief Technology Officer": "chief_technology_officer",
     "Programmer": "programmer",
+    "Code Reviewer": "code_reviewer",
+    "Software Test Engineer": "software_test_engineer",
 }
 
 adapter = AgentAdapter(agent_configs)
@@ -65,10 +68,13 @@ clawdev/
 
 ## Development Phases
 
-1. **Demand Analysis** - Analyze requirements and determine product modality
-2. **Language Choose** - Select appropriate programming language
+1. **DemandAnalysis** - Analyze requirements and determine product modality
+2. **LanguageChoose** - Select appropriate programming language
 3. **Coding** - Design, implement, and improve code
-4. **Code Review** - Review code quality
+   - CodingDesign - Design project architecture
+   - CodingInit - Initialize repository
+   - CodingImprove - Implement and improve code
+4. **CodeReview** - Review code quality
 5. **Testing** - Write and run tests
 6. **Documentation** - Create documentation
 
