@@ -1,10 +1,25 @@
 """
+Copyright 2024 ClawDev Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
 Agent adapter for ClawDev framework.
 
 Provides a unified interface for communicating with AI agents through OpenClaw ACP.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict
 from openclaw_acp import OpenClawAgent
 
@@ -35,6 +50,49 @@ class AgentAdapter:
             context: Context message to send after agent initialization
         """
         self._session_contexts[role] = context
+
+    def _create_agent(self, role: str) -> None:
+        """
+        Create and start an agent for the specified role.
+        Thread-safe agent creation.
+        """
+        agent_name = self.agent_configs.get(role, "default")
+        if agent_name not in self.agents:
+            logger.debug(
+                "[AgentAdapter] Creating agent: %s (role: %s)", agent_name, role
+            )
+            session_context = self._session_contexts.get(role)
+            agent = OpenClawAgent(
+                agent=agent_name,
+                session_context=session_context,
+            )
+            self.agents[agent_name] = agent
+
+    def pre_init_agents(self, max_workers: int = 8) -> None:
+        """
+        Pre-initialize all agents in parallel.
+
+        Args:
+            max_workers: Maximum number of parallel initializations
+        """
+        roles = list(self.agent_configs.keys())
+        logger.info("[AgentAdapter] Pre-initializing %d agents...", len(roles))
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(self._create_agent, role): role for role in roles
+            }
+            for future in as_completed(futures):
+                role = futures[future]
+                try:
+                    future.result()
+                    logger.debug("[AgentAdapter] Agent ready: %s", role)
+                except Exception as e:
+                    logger.error(
+                        "[AgentAdapter] Failed to initialize agent %s: %s", role, e
+                    )
+
+        logger.info("[AgentAdapter] All agents pre-initialized")
 
     def get_agent(self, role: str) -> OpenClawAgent:
         """
