@@ -67,11 +67,12 @@ class ChatChain:
             raise RuntimeError("Environment not initialized")
 
         session_context_template = self.chain_config.get("session_context_template")
+        all_roles = list(self.agent_adapter.agent_configs.keys())
+
         if session_context_template and self.env.task_prompt:
             context_lines = session_context_template
             if isinstance(context_lines, list):
                 context_lines = "\n".join(context_lines)
-            all_roles = list(self.agent_adapter.agent_configs.keys())
             for role in all_roles:
                 colleagues = [r for r in all_roles if r != role]
                 colleagues_str = (
@@ -85,6 +86,9 @@ class ChatChain:
                     colleagues_list=colleagues_str,
                 )
                 self.agent_adapter.set_session_context(role, session_context)
+
+        for role in all_roles:
+            self.agent_adapter.get_agent(role)
 
     def execute_chain(self) -> None:
         """Execute all phases in the chain."""
