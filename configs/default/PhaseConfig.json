@@ -61,7 +61,7 @@
     "notification_mode": true,
     "user_role_name": "Chief Technology Officer",
     "initiator_prompt": [
-      "[TASK] Design the project architecture and write framework code.",
+      "[TASK] Design project architecture and write framework code (without implementation).",
 
       "[USER REQUIREMENTS]",
       "- Task: {task}",
@@ -72,11 +72,21 @@
       "[IMPORTANT]",
       "- Your workspace is already configured with git and tea CLI",
       "- You can refer to Gitea skill for tea usage details",
-      "- CTO has internal memory, the task persists in context",
 
-      "[RESULT TAGS] This is a notification phase.",
-      "- After receiving this task, immediately output <result>Done</result>",
-      "- CTO's actual work (design and PR creation) will happen in subsequent phases"
+      "[WORKFLOW]",
+      "1. Design project architecture:",
+      "   - Directory structure",
+      "   - Main modules and their responsibilities",
+      "   - Data models (if applicable)",
+      "   - API endpoints (if applicable)",
+      "2. Write framework code WITHOUT implementation:",
+      "   - Create main entry point files with TODO/placeholder",
+      "   - Set up project structure with empty modules",
+      "   - Add basic configuration files",
+      "3. Create repository and push:",
+      "   - Use 'tea repo create' to create PUBLIC repository",
+      "   - Commit and push framework code to main branch (NO PR)",
+      "4. After completing, output <result>Done</result>"
     ],
     "context": "User Request: {task}\nModality: {modality}\nLanguage: {language}\nDescription: {description}"
   },
@@ -85,35 +95,28 @@
     "user_role_name": "Chief Technology Officer",
     "max_dialog_turns": 4,
     "initiator_prompt": [
-      "[TASK] Create a new repository on Gitea for this project and add Programmer as a collaborator.",
+      "[TASK] Add Programmer as collaborator and notify them.",
 
       "[IMPORTANT]",
-      "- The repository MUST be PUBLIC (non-private)",
+      "- The repository was already created in CodingDesign phase",
       "- Your workspace is already configured with git and tea CLI",
-      "- You can refer to Gitea skill for tea usage details",
-      "- Note: CTO has already received the architecture design task in CodingDesign phase",
 
       "[GITEA WORKFLOW]",
-      "1. Use 'tea repo create' to create a new PUBLIC repository on Gitea (omit --private flag for public)",
-      "2. Use 'tea repo add-collaborator' to add Programmer as a collaborator to the repository",
+      "1. Use 'tea repo add-collaborator' to add Programmer as a collaborator to the repository",
 
-      "[MESSAGE] After the repo is created and collaborator is added, send a message to {assistant_role}.",
+      "[MESSAGE] After adding collaborator, send a message to {assistant_role}.",
 
       "[CRITICAL] Write ONLY a message to instruct {assistant_role}. Do NOT simulate any response.",
       "Your message will be sent to {assistant_role}. Wait for their response. DO NOT write both sides of the conversation.",
 
-      "[INSTRUCT {assistant_role}] The message must meet the following requirements:",
-      "- MUST include the repository URL",
+      "[INSTRUCT {assistant_role}] The message must:",
+      "- Include the repository URL",
       "- Ask {assistant_role} to confirm whether they can access the repository",
-      "- Tell {assistant_role} that CTO has already created the framework code in a PR",
-      "- Ask {assistant_role} to review and build upon the existing framework code",
-      "- Tell {assistant_role} that all future code changes must be submitted via PR for your review",
-      "- Tell {assistant_role} they must NOT output <result> tags. Whether this phase ends is determined solely by you (CTO)",
+      "- Tell {assistant_role} to review the framework code and start implementing",
+      "- Tell {assistant_role} they must NOT output <result> tags until they confirm access",
       "- Do NOT include <result> tags with content in this message, as this will skip the phase",
-      "  Example WRONG: \"You MUST NOT output <result>Done</result>\"",
-      "  Example CORRECT: \"DO NOT output any <result> tags\"",
 
-      "[TERMINATION] After confirming {assistant_role} can access the repository and has submitted/updated the PR based on the framework, output <result>Done</result>."
+      "[TERMINATION] After {assistant_role} confirms they can access the repository, output <result>Done</result>."
     ],
     "context": "User Request: {task}\nDescription: {description}\nTarget: {modality}\nLanguage: {language}",
     "dialog_prompt": "{the_other_role} said: {content}"
