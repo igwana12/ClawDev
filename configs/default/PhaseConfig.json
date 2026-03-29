@@ -119,11 +119,11 @@
       "[VERIFICATION] After receiving {assistant_role}'s response, YOU MUST verify:",
       "- Use 'tea pulls list' to check if the PR was actually created",
       "- If PR does not exist, ask {assistant_role} to create it",
-      "- If PR exists but code quality is poor (e.g., empty files, incomplete implementation), require {assistant_role} to add more commits",
-      "- If quality is severely lacking, you can delete the PR using 'tea pr delete' and ask {assistant_role} to recreate it",
-      "- Only output <result>Done</result> after confirming the PR exists and meets minimum quality standards",
+      "- If PR exists but has empty files or no core implementation, require {assistant_role} to add more commits",
+      "- Quality standard: at least has some core functionality, don't be too strict",
+      "- Only output <result>Done</result> after confirming the PR has basic implementation",
 
-      "[TERMINATION] After confirming the PR exists and meets quality standards, output <result>Done</result>."
+      "[TERMINATION] After confirming the PR has basic implementation, output <result>Done</result>."
     ],
     "context": "User Request: {task}\nDescription: {description}\nTarget: {modality}\nLanguage: {language}",
     "dialog_prompt": "{the_other_role} said: {content}"
