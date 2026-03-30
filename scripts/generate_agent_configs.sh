@@ -68,7 +68,7 @@ echo "=== Deleting existing clawdev tokens ==="
 for agent in "${AGENTS[@]}"; do
   user_id=$(docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'SELECT id FROM user WHERE name=\"$agent\";'" 2>/dev/null)
   if [[ -n "$user_id" ]]; then
-    docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'DELETE FROM access_token WHERE uid=$user_id AND name=\"clawdev\";'" 2>/dev/null
+    docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'PRAGMA busy_timeout=5000; DELETE FROM access_token WHERE uid=$user_id AND name=\"clawdev\";'" 2>/dev/null || echo "  Warning: failed to delete token for $agent, continuing..."
     echo "  Deleted clawdev token for: $agent"
   fi
 done
@@ -135,6 +135,10 @@ done
 echo ""
 echo "Done! Total: ${#AGENTS[@]} agents"
 echo "Output: $TEMP_DIR"
+
+# Write credentials dir to temp file for other scripts to read
+echo "$TEMP_DIR" > /tmp/clawdev-last-credentials-dir
+
 echo ""
 echo "To deploy to workspace, run:"
 echo "  GENERATED_CREDENTIALS_DIR=$TEMP_DIR ./scripts/deploy_agent_credentials.sh"

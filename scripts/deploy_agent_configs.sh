@@ -175,43 +175,12 @@ deploy_configurations() {
         # Create target directory if it doesn't exist
         mkdir -p "$target_dir"
         
-        # Copy all configuration files from source to target
-        local files_copied=0
-        for file in "$source_dir"/*; do
-            if [[ -f "$file" ]]; then
-                local filename=$(basename "$file")
-                print_status "Copying $filename to $target_dir"
-                if cp "$file" "$target_dir/"; then
-                    files_copied=$((files_copied + 1))
-                else
-                    print_error "Failed to copy $filename"
-                fi
-            fi
-        done
-        
-        # Copy skills directory if it exists
-        if [[ -d "$source_dir/skills" ]]; then
-            print_status "Copying skills directory to $target_dir"
-            if cp -r "$source_dir/skills" "$target_dir/"; then
-                    files_copied=$((files_copied + 1))
-                else
-                print_error "Failed to copy skills directory"
-            fi
-        fi
-        
-        # Copy required skills from default workspace to agent's workspace
-        copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir/skills"
-
-        # Configure git to rewrite localhost URLs to host.docker.internal
-        print_status "Configuring git URL rewrite for $agent"
-        HOME="$target_dir" git config --global url."http://host.docker.internal:3000/".insteadof "http://localhost:3000/"
-        HOME="$target_dir" git config --global url."https://host.docker.internal:3000/".insteadof "https://localhost:3000/"
-        
-        if [[ $files_copied -gt 0 ]]; then
+        # Use rsync to copy all files including skills directory
+        if rsync -av --exclude='.git' "$source_dir/" "$target_dir/"; then
             success_count=$((success_count + 1))
             print_status "Successfully deployed configuration for agent: $agent"
         else
-            print_warning "No files copied for agent: $agent"
+            print_error "Failed to deploy configuration for agent: $agent"
         fi
     done
     
@@ -334,16 +303,14 @@ main() {
     
     # Get OpenClaw configuration directory
     local openclaw_config_dir
-    openclaw_config_dir=$(get_openclaw_config_dir)
-    if [[ $? -ne 0 ]]; then
+    if ! openclaw_config_dir=$(get_openclaw_config_dir); then
         print_error "Failed to get OpenClaw configuration directory"
         return 1
     fi
     
     # Get configuration name
     local config_name
-    config_name=$(get_config_name)
-    if [[ $? -ne 0 ]]; then
+    if ! config_name=$(get_config_name); then
         print_error "Failed to get configuration name"
         return 1
     fi

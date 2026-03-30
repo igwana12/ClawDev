@@ -19,6 +19,13 @@ cd "$PROJECT_DIR"
 
 print_status "Starting ClawDev deployment..."
 
+# Check .gitignore
+if git -C "$PROJECT_DIR" check-ignore -q .env 2>/dev/null; then
+    print_status ".env is properly ignored by .gitignore"
+else
+    print_warning ".env is NOT in .gitignore, token may be exposed!"
+fi
+
 # Ask for OPENCLAW_CONFIG_HOST if not set
 if [[ -z "${OPENCLAW_CONFIG_HOST:-}" ]]; then
     read -p "Enter OPENCLAW_CONFIG_HOST (default: ~/.openclaw): " config_host
@@ -152,19 +159,30 @@ else
 fi
 
 print_status "Gitea started at http://host.docker.internal:3000"
-print_warning "Please complete Gitea setup manually, then press Enter to continue..."
+print_warning "Waiting for Gitea to be ready..."
+until curl -sf http://localhost:3000/api/healthz >/dev/null 2>&1; do
+    echo -n "."
+    sleep 3
+done
+echo ""
+print_status "Gitea is ready"
+print_warning "Complete Gitea web setup at http://host.docker.internal:3000 then press Enter..."
 read -r
+
+# Wait a bit more for DB to be fully initialized
+sleep 3
 
 # Create agent accounts
 print_status "Creating agent accounts in Gitea..."
-output=$(./scripts/generate_agent_configs.sh 2>&1)
-echo "$output"
+rm -f /tmp/clawdev-last-credentials-dir
+./scripts/generate_agent_configs.sh
 
-# Extract the credentials directory from the last line of output
-credentials_dir=$(echo "$output" | tail -1 | sed 's/.*GENERATED_CREDENTIALS_DIR=//' | awk '{print $1}')
+# Read credentials directory from temp file
+credentials_dir=$(cat /tmp/clawdev-last-credentials-dir 2>/dev/null)
+rm -f /tmp/clawdev-last-credentials-dir
 
 if [[ -z "$credentials_dir" || ! -d "$credentials_dir" ]]; then
-    print_error "Failed to get credentials directory from output"
+    print_error "Failed to get credentials directory"
     exit 1
 fi
 
