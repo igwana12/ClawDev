@@ -21,47 +21,51 @@ We express our gratitude to the ChatDev team for their pioneering work in multi-
 ## Requirements
 
 - Python 3.10+
-- Docker and Docker Compose
 - OpenClaw Gateway running at `ws://127.0.0.1:18789`
 - OpenClaw agents configured for each role
 
-## Docker Setup
+## Deployment
 
-ClawDev requires OpenClaw Gateway and Gitea running via Docker.
+**Prerequisite**: Complete OpenClaw onboard first (run `openclaw` and configure vendor).
 
-### Prerequisites
-
-Clone OpenClaw source code first:
+### 1. Clone
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-docker build -t openclaw:local .
+git clone https://github.com/HDAnzz/ClawDev.git
+cd ClawDev
 ```
 
-### Start Services
+### 2. Set OPENCLAW_CONFIG_HOST
 
 ```bash
-# Start gateway and Gitea
-docker compose up -d
-
-# Stop services
-docker compose down
+export OPENCLAW_CONFIG_HOST=~/.openclaw
 ```
 
-### Environment Variables
+The script will automatically create the `.env` file.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OPENCLAW_CONFIG_HOST` | `/home/node/.openclaw` | Host config directory |
-| `OPENCLAW_GATEWAY_TOKEN` | - | Gateway API token |
-| `OPENCLAW_GATEWAY_PORT` | `18789` | Gateway WebSocket port |
-| `OPENCLAW_QMD_CUDA` | `false` | Enable CUDA for QMD |
-
-## Installation
+### 3. Run Deployment Script
 
 ```bash
-pip install -e .
+./scripts/deploy.sh
+```
+
+The script will automatically:
+1. Check .gitignore
+2. Configure openclaw.json (acp + remote)
+3. Install dependencies
+4. Create agents
+5. Start Gitea container
+6. Generate agent accounts
+7. Deploy credentials
+8. Install skills
+9. Configure sandbox
+
+> ⚠️ After Gitea starts, visit http://host.docker.internal:3000 to complete setup
+
+### 4. Run ClawDev
+
+```bash
+uv run src/main.py "your task description"
 ```
 
 ## Quick Start

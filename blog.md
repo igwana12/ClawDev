@@ -27,43 +27,50 @@
 
 ## 🦐 二、部署我的"龙虾"
 
-### 2.1 部署前置条件
+> ⚠️ **前置条件**：先运行 `openclaw` 完成 onboard 配置模型供应商
 
-ClawDev 需要 OpenClaw Gateway 和 Gitea 通过 Docker 运行。
-
-```bash
-# 1. 克隆 OpenClaw 源码
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-
-# 2. 构建镜像并初始化配置
-./docker-setup.sh
-```
-
-### 2.2 启动服务
+### 2.1 克隆项目
 
 ```bash
-# 启动 gateway 和 Gitea
-./scripts/compose.sh up -d
-
-# 停止服务
-./scripts/compose.sh down
-```
-
-### 2.3 安装 ClawDev
-
-```bash
-# 克隆 ClawDev 项目
 git clone https://github.com/HDAnzz/ClawDev.git
 cd ClawDev
+```
 
-# 安装
-pip install -e .
+### 2.2 设置 OPENCLAW_CONFIG_HOST
+
+```bash
+export OPENCLAW_CONFIG_HOST=~/.openclaw
+```
+
+脚本会自动创建 `.env` 文件。
+
+### 2.3 一键部署
+
+```bash
+./scripts/deploy.sh
+```
+
+脚本会自动完成：
+1. 配置 openclaw.json（acp + remote）
+2. 安装依赖
+3. 创建智能体
+4. 启动 Gitea 容器
+5. 在 Gitea 创建智能体账户
+6. 部署智能体凭证
+7. 安装所需技能
+8. 配置沙箱
+
+> ⚠️ Gitea 启动后需访问 http://host.docker.internal:3000 完成初始化
+
+### 2.4 运行 ClawDev
+
+```bash
+uv run src/main.py "你的任务描述"
 ```
 
 <!-- TODO: 截图 - 阿里云轻量服务器控制台 -->
 
-### 2.2 核心架构
+### 2.12 核心架构
 
 ```
 ┌─────────────────────────────────────────────────────────┐
