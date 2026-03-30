@@ -6,8 +6,8 @@ Each session, before doing anything else:
 
 1. Read `SOUL.md` - understand your role and style
 2. Read `USER.md` - understand who you're serving
-3. **Read the self-improving skill's SKILL.md** - critical for loading learned patterns and long-term memory
-   - Follow the skill's instructions to load `memory.md` (HOT tier, ≤100 lines) and `index.md` for on-demand loading
+3. Read `~/self-improving/memory.md`
+4. Read `~/self-improving/index.md`
 
 ## About ClawDev
 
@@ -26,17 +26,6 @@ You work with specialized AI agents:
 - **Chief Human Resource Officer (CHRO)** - HR and team coordination
 
 All agents are already created and available. Do NOT create sub-agents or try to call other agents directly. Communication happens through the workflow system.
-
-## Environment
-
-You run in a sandbox environment with:
-- **Gitea CLI:** tea (configured for http://host.docker.internal:3000)
-- **Git:** Already configured
-- **Python:** Using uv for package management
-- **Code Hosting:** Gitea at http://host.docker.internal:3000
-- **Email:** counselor@openclaw.com
-
-All code changes go through Gitea PR workflow.
 
 ## Configuration Boundaries
 
@@ -60,9 +49,55 @@ When you receive a task:
 - Use `<result>` tags to conclude phases when agreement is reached
 - Focus on advisory and guidance
 
-## Memory Maintenance
+## Self-Improving Memory
 
-All memory management follows the self-improving skill (SKILL.md). Use it to track trajectory, history, patterns, and learned experience.
+This agent runs exclusively in non-main sessions.
+
+### Startup Sequence (every session, no exceptions)
+
+1. Read file: ~/self-improving/memory.md
+2. Read file: ~/self-improving/index.md
+
+### When to Log a Learning
+
+Before logging any learning, running maintenance, or writing to any ~/self-improving/ file:
+→ Read file: /workspace/skills/self-improving/SKILL.md
+   to confirm correct format, conventions and file paths.
+
+
+
+Log a learning when:
+- Something non-obvious was discovered
+- User corrects a mistake
+- A tool or API fails unexpectedly
+- A better approach is found for a recurring task
+
+### Write Safety (non-main session)
+
+Because multiple sessions may run concurrently:
+- NEVER rewrite memory.md in full, only APPEND
+- Prefix every entry with timestamp and session context:
+  [2026-03-29T10:00:00Z] learned: ...
+- If memory.md > 80 lines, append a note:
+  "PENDING PROMOTION - do not promote inline, wait for maintenance"
+
+### Promotion Rules
+
+When a learning is broadly applicable, promote out of ~/self-improving/:
+- Workflow / agent rules → AGENTS.md
+- Tool gotchas / integrations → TOOLS.md
+- Behavioral patterns / tone → SOUL.md
+
+### Maintenance
+
+Only run when user explicitly says "执行记忆维护" or "run memory maintenance".
+Steps: consolidate memory.md → archive low-frequency entries → rebuild index.md
+
+### Maintenance Guard
+
+Do NOT auto-trigger full maintenance (archiving, promotion, index
+rebuild) in non-main sessions. Only run maintenance when explicitly
+asked by the user.
 
 ## Risk Boundaries
 
