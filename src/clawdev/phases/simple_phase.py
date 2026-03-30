@@ -90,7 +90,7 @@ class SimplePhase(Phase):
                 break
 
             self.dialog_turn += 1
-            other_role = self.assistant_role
+            other_role = self.user_role
             dialog_prompt = self.render_dialog_prompt(other_role, response)
             response = agent_adapter.send(dialog_prompt, role=self.assistant_role)
             logger.debug(
