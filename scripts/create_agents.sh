@@ -69,6 +69,7 @@ configure_agent_sandbox() {
     
     python3 << EOF
 import json
+import os
 
 config_path = os.path.expanduser(os.environ.get("OPENCLAW_CONFIG_HOST", "~/.openclaw/openclaw.json"))
 with open(config_path, "r") as f:
