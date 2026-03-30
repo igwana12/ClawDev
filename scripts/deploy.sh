@@ -125,6 +125,14 @@ fi
 print_status "Installing dependencies..."
 uv sync
 
+# Build sandbox image
+print_status "Building openclaw-sandbox:bookworm-slim..."
+if docker build -t openclaw-sandbox:bookworm-slim -f Dockerfile.sandbox .; then
+    print_status "Sandbox image built successfully"
+else
+    print_warning "Failed to build sandbox image, continuing..."
+fi
+
 # Create agents
 print_status "Creating agents..."
 source .venv/bin/activate

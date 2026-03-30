@@ -40,22 +40,31 @@ confirm() {
     done
 }
 
-# Function to check if agent already exists
+declare -A EXISTING_AGENTS
+
+load_existing_agents() {
+    print_status "Checking existing agents..."
+    while IFS= read -r line; do
+        if [[ $line =~ ^-\ ([a-z_]+)\ \( ]]; then
+            EXISTING_AGENTS["${BASH_REMATCH[1]}"]=1
+        fi
+    done < <(openclaw agents list 2>/dev/null)
+    print_status "Found ${#EXISTING_AGENTS[@]} existing agents"
+}
+
 agent_exists() {
-    local agent_name="$1"
-    if openclaw agents list 2>/dev/null | grep -q "^- ${agent_name,,} ("; then
-        return 0
-    else
-        return 1
-    fi
+    local agent_id=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    [[ -n "${EXISTING_AGENTS[$agent_id]:-}" ]]
 }
 
 # Function to remove existing agent
 remove_agent() {
     local agent_name="$1"
+    local agent_id=$(echo "$agent_name" | tr '[:upper:]' '[:lower:]')
     print_status "Removing existing agent: $agent_name"
     if openclaw agents delete "$agent_name" --force; then
         print_status "Successfully removed agent: $agent_name"
+        unset EXISTING_AGENTS["$agent_id"]
         return 0
     else
         print_error "Failed to remove agent: $agent_name"
@@ -113,6 +122,8 @@ create_agent() {
         fi
     fi
     
+    AGENT_JUST_CREATED=1
+    
     # Create workspace directory - convert to lowercase, keep underscores
     local agent_id=$(echo "$agent_name" | tr '[:upper:]' '[:lower:]')
     local workspace_dir="${OPENCLAW_CONFIG_HOST:-$HOME/.openclaw}/workspace-${agent_id}"
@@ -121,6 +132,7 @@ create_agent() {
     # Use openclaw agents add command to create the agent in non-interactive mode
     if openclaw agents add "$agent_name" --non-interactive --workspace "$workspace_dir"; then
         print_status "Successfully created agent: $agent_name"
+        EXISTING_AGENTS["$agent_id"]=1
         
         # Configure sandbox settings for this specific agent
         print_status "Configuring sandbox for agent: $agent_id"
@@ -150,16 +162,24 @@ main() {
     
     print_status "Creating OpenClaw agents for ClawDev framework..."
     
+    load_existing_agents
+    
     local success_count=0
     local total_agents=${#agents[@]}
     local skipped_count=0
     
     for agent_name in "${agents[@]}"; do
-        if create_agent "$agent_name"; then
-            if agent_exists "$agent_name"; then
-                ((success_count++))
-            else
+        local agent_id=$(echo "$agent_name" | tr '[:upper:]' '[:lower:]')
+        local was_existing=0
+        agent_exists "$agent_name" && was_existing=1
+        
+        create_agent "$agent_name"
+        local result=$?
+        if [[ $result -eq 0 ]]; then
+            if [[ $was_existing -eq 1 ]]; then
                 ((skipped_count++))
+            else
+                ((success_count++))
             fi
         fi
     done
