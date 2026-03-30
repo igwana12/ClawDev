@@ -21,8 +21,10 @@ We express our gratitude to the ChatDev team for their pioneering work in multi-
 ## Requirements
 
 - Python 3.10+
-- OpenClaw Gateway running at `ws://127.0.0.1:18789`
-- OpenClaw agents configured for each role
+- Docker (for Gitea container)
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
+- clawhub (OpenClaw skill manager, install via `npm i -g clawhub` or `pnpm add -g clawhub`)
+- OpenClaw (run `openclaw` to configure)
 
 ## Deployment
 
