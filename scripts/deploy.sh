@@ -195,24 +195,33 @@ print_status "Deploying agent configurations..."
 ./scripts/deploy_agent_configs.sh
 
 # Install skills via clawhub
-print_status "Installing skills via clawhub..."
-
 workdir="${OPENCLAW_CONFIG_HOST:-$HOME/.openclaw}/workspace"
 
-skills=(
-    "gitea"
-    "git-essentials"
-    "python"
-    "code"
-    "self-improving"
-    "ddgs"
-    "crawl4ai-skill"
-)
+if [ -n "${MANUAL_SKILL_INSTALL:-}" ]; then
+    print_warning "MANUAL_SKILL_INSTALL is set - manual skill installation mode"
+    echo ""
+    echo "Please manually download skills to: $workdir/skills/"
+    echo "Required skills: gitea, git-essentials, python, code, self-improving, ddgs, crawl4ai-skill"
+    echo ""
+    read -p "Press Enter after manually downloading skills to continue... "
+else
+    print_status "Installing skills via clawhub..."
 
-for skill in "${skills[@]}"; do
-    print_status "Installing $skill..."
-    clawhub install "$skill" --workdir "$workdir" 2>/dev/null || print_warning "Failed to install $skill, skipping..."
-done
+    skills=(
+        "gitea"
+        "git-essentials"
+        "python"
+        "code"
+        "self-improving"
+        "ddgs"
+        "crawl4ai-skill"
+    )
+
+    for skill in "${skills[@]}"; do
+        print_status "Installing $skill..."
+        clawhub install "$skill" --workdir "$workdir" 2>/dev/null || print_warning "Failed to install $skill, skipping..."
+    done
+fi
 
 # Configure sandbox in openclaw.json
 print_status "Configuring sandbox in openclaw.json..."
