@@ -250,10 +250,6 @@ GENERATED_CREDENTIALS_DIR="$credentials_dir" ./scripts/deploy_agent_credentials.
 # Cleanup temp files
 rm -f /tmp/clawdev-skipped-agents
 
-# Deploy agent configs
-print_status "Deploying agent configurations..."
-./scripts/deploy_agent_configs.sh
-
 # Install skills via clawhub
 workdir="${OPENCLAW_CONFIG_HOST:-$HOME/.openclaw}/workspace"
 
@@ -282,6 +278,10 @@ else
         clawhub install "$skill" --workdir "$workdir" 2>/dev/null || print_warning "Failed to install $skill, skipping..."
     done
 fi
+
+# Deploy agent configs (after skills are installed)
+print_status "Deploying agent configurations..."
+./scripts/deploy_agent_configs.sh
 
 # Configure sandbox in openclaw.json
 print_status "Configuring sandbox in openclaw.json..."
