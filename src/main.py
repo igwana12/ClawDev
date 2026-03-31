@@ -44,17 +44,10 @@ DEFAULT_AGENT_CONFIGS = {
 }
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout,
-)
-logger = logging.getLogger("openclaw_acp.agent")
 
 
 def main():
