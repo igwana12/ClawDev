@@ -35,7 +35,7 @@
 比如在我收到的那个凌晨2点的 PR 里：
 - **CEO** 在 1:30 收到我白天提交的需求："开发 CIFAR-10 图像分类器"
 - **CPO** 在 1:45 确定技术方案：PyTorch + ResNet + HuggingFace + Gradio
-- **CTO** 在 2:00 在 Gitea 创建仓库 `cifar10-resnet-classifier`
+- **CTO** 在 1:50 在 Gitea 创建仓库 `cifar10-resnet-classifier`
 - **Programmer** 在 2:10 开始编码，实现 ResNet 模型、数据加载器、Gradio 界面
 - **2:17** 提交第一个 PR，给我发了通知邮件
 
@@ -1536,7 +1536,7 @@ ClawDev 可以应用于以下场景：
 
 1. **支持更多代码仓库**
    - 集成 GitHub API
-   - 支持 GitLab
+   - 支持 Gitea
    - 实现仓库迁移工具
 
 2. **增强代码理解能力**
