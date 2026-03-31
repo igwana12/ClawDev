@@ -58,8 +58,8 @@ if [[ ${#existing_users[@]} -gt 0 ]]; then
   read -p "Continue? (y/N): " -n 1 -r
   echo
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborted."
-    exit 1
+    echo "Skipped. Users already exist, will use existing credentials."
+    exit 0
   fi
 fi
 
