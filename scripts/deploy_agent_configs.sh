@@ -220,7 +220,7 @@ copy_required_skills() {
     fi
     
     # Check if agent skills directory exists and contains skills.json
-    local skills_json="$agent_skills_dir/skills.json"
+    local skills_json="$agent_skills_dir/skills/skills.json"
     if [[ ! -f "$skills_json" ]]; then
         print_warning "Skills configuration file does not exist: $skills_json"
         return 0
