@@ -53,14 +53,32 @@ fi
 if [[ ${#existing_users[@]} -gt 0 ]]; then
   echo ""
   echo "Warning: ${#existing_users[@]} users already exist: ${existing_users[*]}"
-  echo "This will delete existing 'clawdev' tokens for these users."
+  echo "Options:"
+  echo "  [r] Delete existing tokens and regenerate (recommended)"
+  echo "  [s] Skip existing users, only process new users"
+  echo "  [a] Abort deployment"
   echo ""
-  read -p "Continue? (y/N): " -n 1 -r
+  read -p "Choice (r/s/a): " -n 1 -r choice
   echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Skipped. Users already exist, will use existing credentials."
-    exit 0
-  fi
+  case "$choice" in
+    [Rr])
+      echo "Will regenerate tokens for all users."
+      ;;
+    [Ss])
+      echo "Skipping existing users, processing only: ${missing_users[*]:-none}"
+      AGENTS=("${missing_users[@]}")
+      if [[ ${#AGENTS[@]} -eq 0 ]]; then
+        TEMP_DIR=$(mktemp -d)
+        echo "$TEMP_DIR" > /tmp/clawdev-last-credentials-dir
+        echo "No new users to process. Exiting."
+        exit 0
+      fi
+      ;;
+    *)
+      echo "Aborted."
+      exit 1
+      ;;
+  esac
 fi
 
 echo ""
