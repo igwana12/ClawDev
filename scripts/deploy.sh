@@ -174,7 +174,20 @@ until curl -sf http://localhost:3000/api/healthz >/dev/null 2>&1; do
 done
 echo ""
 print_status "Gitea is ready"
-print_warning "Complete Gitea web setup at http://host.docker.internal:3000 then press Enter..."
+
+echo ""
+print_warning "=========================================="
+print_warning "=========================================="
+print_warning "   🔧 IMPORTANT: Complete Gitea Setup"
+print_warning "=========================================="
+print_warning "=========================================="
+print_warning ""
+print_warning "   1. Open: http://host.docker.internal:3000"
+print_warning "   2. Complete the initial setup wizard"
+print_warning "   3. Create admin account"
+print_warning ""
+print_warning "   Press Enter after setup is complete..."
+echo ""
 read -r
 
 # Wait a bit more for DB to be fully initialized
