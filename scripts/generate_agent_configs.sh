@@ -32,10 +32,11 @@ fi
 
 # AGENT_GITEA_URL is used for agent credentials (agents run in sandbox, need docker internal address)
 # Derive from GITEA_URL by replacing host with host.docker.internal, keeping protocol and port
-if [[ "$GITEA_URL" =~ ^(https?)://([^/]+)(.*)$ ]]; then
+if [[ "$GITEA_URL" =~ ^(https?)://([^/:]+)(:[0-9]+)?(/.*)?$ ]]; then
     protocol="${BASH_REMATCH[1]}"
-    rest="${BASH_REMATCH[3]}"
-    AGENT_GITEA_URL="${protocol}://host.docker.internal${rest}"
+    port="${BASH_REMATCH[3]:-:3000}"
+    path="${BASH_REMATCH[4]:-}"
+    AGENT_GITEA_URL="${protocol}://host.docker.internal${port}${path}"
 else
     AGENT_GITEA_URL="http://host.docker.internal:3000"
 fi
