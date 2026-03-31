@@ -175,20 +175,6 @@ deploy_configurations() {
         # Create target directory if it doesn't exist
         mkdir -p "$target_dir"
         
-        # Delete old contents except OpenClaw core files and .git
-        find "$target_dir" -mindepth 1 \
-            -not -path '*/.git*' \
-            -not -path '*/AGENTS.md' \
-            -not -path '*/BOOTSTRAP.md' \
-            -not -path '*/HEARTBEAT.md' \
-            -not -path '*/IDENTITY.md' \
-            -not -path '*/memory*' \
-            -not -path '*/skills*' \
-            -not -path '*/SOUL.md' \
-            -not -path '*/TOOLS.md' \
-            -not -path '*/USER.md' \
-            -delete 2>/dev/null || true
-        
         # Copy all contents, exclude .git
         if cp -r "$source_dir/." "$target_dir/"; then
             # Copy required skills for this agent
