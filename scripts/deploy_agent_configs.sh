@@ -213,9 +213,9 @@ deploy_configurations() {
 
 # Function to copy required skills from default workspace to agent's workspace
 copy_required_skills() {
-    local openclaw_config_dir="$1"
-    local agent_name="$2"
-    local agent_skills_dir="$3"
+    local openclaw_config_dir="$1"  # ~/.openclaw/
+    local agent_name="$2"           # Chief_Executive_Officer
+    local agent_skills_dir="$3"     # configs/default/Chief_Executive_Officer
     
     # Target workspace directory for this agent (using user-provided config directory)
     local target_dir="$openclaw_config_dir/workspace-${agent_name,,}"
@@ -223,18 +223,32 @@ copy_required_skills() {
     # Default workspace skills directory (using user-provided config directory)
     local default_skills_dir="$openclaw_config_dir/workspace/skills"
     
+    print_status "[DEBUG] copy_required_skills called"
+    print_status "[DEBUG] openclaw_config_dir: $openclaw_config_dir"
+    print_status "[DEBUG] agent_name: $agent_name"
+    print_status "[DEBUG] agent_skills_dir: $agent_skills_dir"
+    print_status "[DEBUG] target_dir: $target_dir"
+    print_status "[DEBUG] default_skills_dir: $default_skills_dir"
+    
     # Check if default skills directory exists
     if [[ ! -d "$default_skills_dir" ]]; then
         print_warning "Default skills directory does not exist: $default_skills_dir"
         return 0
     fi
     
+    print_status "[DEBUG] default_skills_dir exists, listing contents:"
+    ls -la "$default_skills_dir" 2>&1 | head -20
+    
     # Check if agent skills directory exists and contains skills.json
-    local skills_json="$agent_skills_dir/skills.json"
+    local skills_json="$agent_skills_dir/skills/skills.json"
+    print_status "[DEBUG] Looking for skills.json at: $skills_json"
     if [[ ! -f "$skills_json" ]]; then
         print_warning "Skills configuration file does not exist: $skills_json"
         return 0
     fi
+    
+    print_status "[DEBUG] Found skills.json, content:"
+    cat "$skills_json"
     
     # Create skills directory in target workspace
     local target_skills_dir="$target_dir/skills"
