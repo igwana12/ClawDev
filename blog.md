@@ -2,19 +2,19 @@
 
 > 基于OpenClaw的"龙虾"饲养实录与踩坑笔记
 
-![部署状态](占位符：阿里云ECS控制台截图-显示OpenClaw-Gateway运行状态-green-dot.png)
+![部署状态](figs/ali-ecs.png)
 
 ## 🚨 凌晨2:17，我被邮件吵醒了
 
 手机屏幕亮起的瞬间，我看到一行字：
 
-> **CTO (AI) 提交了 Merge Request #42: 实现用户认证模块**
+> **CTO (AI) 提交了 Merge Request #42: 实现 CIFAR-10 图像分类器**
 
 我瞬间清醒了。
 
 这不是科幻电影。这是我正在参加**阿里云天池大赛**的项目——**ClawDev**，一只真正能干活的多智能体软件开发系统。
 
-![ClawDev架构](占位符：ClawDev系统架构图-展示9个AI角色的协作关系.png)
+![ClawDev架构](figs/arch.png)
 
 ### 什么是ClawDev？
 
@@ -33,13 +33,13 @@
 **它们真的能协同工作。**
 
 比如在我收到的那个凌晨2点的 PR 里：
-- **CEO** 在 1:30 收到我白天提交的需求："开发用户认证模块"
-- **CPO** 在 1:45 确定技术方案：Python + FastAPI + JWT
-- **CTO** 在 2:00 在 Gitea 创建仓库 `user-auth-module`
-- **Programmer** 在 2:10 开始编码，实现登录、注册、token刷新
+- **CEO** 在 1:30 收到我白天提交的需求："开发 CIFAR-10 图像分类器"
+- **CPO** 在 1:45 确定技术方案：PyTorch + ResNet + HuggingFace + Gradio
+- **CTO** 在 2:00 在 Gitea 创建仓库 `cifar10-resnet-classifier`
+- **Programmer** 在 2:10 开始编码，实现 ResNet 模型、数据加载器、Gradio 界面
 - **2:17** 提交第一个 PR，给我发了通知邮件
 
-![时间线](占位符：凌晨任务执行时间线图-展示从1:30到2:17的完整流程.png)
+![时间线](figs/timeline.png)
 
 **它们不用睡觉，不会摸鱼**，而且真的**能生成可运行的代码**。
 
@@ -52,7 +52,6 @@
 
 如果你也想搭建这样的AI团队，继续往下看。
 
-<!-- PLACEHOLDER_WHAT: 什么是ClawDev - 项目介绍 -->PLACEHOLDER_WHAT<!-- END_PLACEHOLDER_WHAT -->
 
 ## 🚀 二、在阿里云上部署 ClawDev
 
@@ -62,13 +61,14 @@
 1. **OpenClaw 已配置**：运行 `openclaw` 完成模型供应商配置（支持阿里云百炼等）
 2. **阿里云账号**：用于部署 ECS/轻量服务器
 3. **Docker 环境**：用于运行 Gitea 和沙箱容器
+4. **UV 包管理器**: 用于构建运行项目所需的虚拟环境
 
 **我选择的部署方案：**
 - **平台**：阿里云轻量应用服务器（2核4G，性价比高）
-- **镜像**：Ubuntu 22.04 LTS
-- **工具链**：Docker + Docker Compose + OpenClaw
+- **镜像**：OpenClaw 官方镜像 (2026.3.13)
+- **工具链**：Docker + OpenClaw + Gitea + UV
 
-![阿里云控制台](占位符：阿里云轻量服务器控制台截图-显示实例运行状态和公网IP.png)
+![阿里云控制台](figs/ali-ecs-info.png)
 
 ### 2.2 部署步骤
 
@@ -82,12 +82,8 @@ cd ClawDev
 #### Step 2: 配置环境变量
 
 ```bash
-# 设置 OpenClaw 配置目录
-export OPENCLAW_CONFIG_HOST=~/.openclaw
-
-# 可选：配置阿里云百炼模型
-export ALIBABA_CLOUD_ACCESS_KEY_ID=your_key_id
-export ALIBABA_CLOUD_ACCESS_KEY_SECRET=your_secret
+# 设置 OpenClaw 配置目录，填写实际的 .openclaw 目录绝对路径
+export OPENCLAW_CONFIG_HOST=/home/admin/.openclaw
 ```
 
 #### Step 3: 一键部署
@@ -152,14 +148,34 @@ config["gateway"]["remote"] = {
 - 设置 `workspaceAccess: rw`（读写权限）
 - 配置网络模式为 `bridge`
 
-#### Step 4: 验证部署
+#### Step 4: 配置模型供应商
+
+> ⚠️ **重要**：模型供应商配置方式（三选一）：
+> - **方式一**：阿里云控制台 → 百炼平台 → 获取 API Key，之后在服务器的应用详情一栏点击"初始化OpenClaw配置"旁的初始化按钮添加 api key
+> - **方式二**：服务器上运行 `openclaw config` 配置模型供应商
+> - **方式三**：手动编辑 `~/.openclaw/openclaw.json`
+
+#### Step 5: 开放端口（阿里云服务器）
+
+如果使用阿里云服务器，需在控制台开放以下端口：
+
+| 服务 | 默认值 | 备注 |
+|------|------|----------|
+| OpenClaw Gateway | 18789 | 云服务器大概率非默认值，运行 `openclaw config get gateway.port`查看实际设置 |
+| Gitea | 3000 | 固定端口 |
+
+> ⚠️ **注意**：在阿里云控制台 → 轻量应用服务器 → 防火墙 添加规则开放端口。
+>
+> 如果部署了阿里云轻量应用服务器并使用了openclaw镜像，在服务器的的应用详情中可以点击“端口放通”旁边的“一键放通”按钮完成openclaw的规则添加，但如果要访问gitea还需要手动添加3000端口的规则
+
+#### Step 6: 验证部署
 
 ```bash
 # 检查 OpenClaw Gateway 是否运行
-curl http://localhost:18789/health
+curl http://{server_ip}:{openclaw_gateway_port}/health
 
 # 检查 Gitea 是否可访问
-curl http://host.docker.internal:3000/api/v1/version
+curl http://{server_ip}:3000/api/v1/version
 
 # 检查智能体是否创建成功
 openclaw agents list
@@ -178,7 +194,7 @@ openclaw agents list
 - 检查网络连接：确保能访问模型 API
 
 **Q3: 部署脚本运行失败？**
-- 检查前置条件：OpenClaw 是否已配置
+- 检查前置条件：OpenClaw 是否已配置以及依赖是否安装
 - 查看详细错误：`./scripts/deploy.sh 2>&1 | tee deploy.log`
 - 检查权限：是否有 Docker 和 OpenClaw 的执行权限
 
@@ -191,15 +207,11 @@ openclaw agents list
 │   ├── workspace/               # 工作空间
 │   │   └── skills/              # 安装的技能
 │   └── workspace-<agent>/       # 各智能体工作目录
-├── ClawDev/                     # 项目目录
-│   ├── .env                     # 环境变量
-│   ├── scripts/                 # 部署脚本
-│   └── src/                     # 源代码
-└── .tea/                        # Gitea CLI 配置
-    └── config.yml
+└── ClawDev/                     # 项目目录
+    ├── .env                     # 环境变量
+    ├── scripts/                 # 部署脚本
+    └── src/                     # 源代码
 ```
-
-![部署完成](占位符：部署完成后的文件结构截图-展示各配置文件和目录.png)
 
 ## 🦞 三、实战演示：让龙虾写一个计算器
 
