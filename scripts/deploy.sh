@@ -211,6 +211,9 @@ fi
 print_status "Deploying agent credentials..."
 GENERATED_CREDENTIALS_DIR="$credentials_dir" ./scripts/deploy_agent_credentials.sh
 
+# Cleanup temp files
+rm -f /tmp/clawdev-skipped-agents
+
 # Deploy agent configs
 print_status "Deploying agent configurations..."
 ./scripts/deploy_agent_configs.sh

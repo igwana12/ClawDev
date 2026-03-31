@@ -55,7 +55,7 @@ if [[ ${#existing_users[@]} -gt 0 ]]; then
   echo "Warning: ${#existing_users[@]} users already exist: ${existing_users[*]}"
   echo "Options:"
   echo "  [r] Delete existing tokens and regenerate (recommended)"
-  echo "  [s] Skip existing users, only process new users"
+  echo "  [s] Skip these agents (keep existing tokens)"
   echo "  [a] Abort deployment"
   echo ""
   read -p "Choice (r/s/a): " -n 1 -r choice
@@ -65,14 +65,8 @@ if [[ ${#existing_users[@]} -gt 0 ]]; then
       echo "Will regenerate tokens for all users."
       ;;
     [Ss])
-      echo "Skipping existing users, processing only: ${missing_users[*]:-none}"
-      AGENTS=("${missing_users[@]}")
-      if [[ ${#AGENTS[@]} -eq 0 ]]; then
-        TEMP_DIR=$(mktemp -d)
-        echo "$TEMP_DIR" > /tmp/clawdev-last-credentials-dir
-        echo "No new users to process. Exiting."
-        exit 0
-      fi
+      echo "Skipping token generation for existing users."
+      echo "${existing_users[*]}" > /tmp/clawdev-skipped-agents
       ;;
     *)
       echo "Aborted."
@@ -81,9 +75,21 @@ if [[ ${#existing_users[@]} -gt 0 ]]; then
   esac
 fi
 
+SKIPPED_AGENTS=()
+if [[ -f /tmp/clawdev-skipped-agents ]]; then
+  read -ra SKIPPED_AGENTS < /tmp/clawdev-skipped-agents
+  echo "Skipping agents: ${SKIPPED_AGENTS[*]}"
+fi
+
 echo ""
 echo "=== Deleting existing clawdev tokens ==="
 for agent in "${AGENTS[@]}"; do
+  # Skip if agent is in skipped list
+  if [[ " ${SKIPPED_AGENTS[*]} " =~ " $agent " ]]; then
+    echo "  [SKIP] $agent: in skipped list"
+    continue
+  fi
+
   user_id=$(docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'SELECT id FROM user WHERE name=\"$agent\";'" 2>/dev/null)
   if [[ -n "$user_id" ]]; then
     docker exec $GITEA_CONTAINER sh -c "sqlite3 /data/gitea/gitea.db 'PRAGMA busy_timeout=5000; DELETE FROM access_token WHERE uid=$user_id AND name=\"clawdev\";'" 2>/dev/null || echo "  Warning: failed to delete token for $agent, continuing..."
@@ -99,6 +105,12 @@ echo "Output: $TEMP_DIR"
 echo ""
 
 for agent in "${AGENTS[@]}"; do
+  # Skip if agent is in skipped list
+  if [[ " ${SKIPPED_AGENTS[*]} " =~ " $agent " ]]; then
+    echo "Skipping $agent (user chose to skip)"
+    continue
+  fi
+
   echo "Creating token for $agent..."
 
   token=$(docker exec --user 1000:1000 $GITEA_CONTAINER gitea admin user generate-access-token \

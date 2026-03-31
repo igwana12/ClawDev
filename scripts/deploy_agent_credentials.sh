@@ -2,6 +2,11 @@
 
 set -e
 
+SKIPPED_AGENTS=()
+if [[ -f /tmp/clawdev-skipped-agents ]]; then
+  read -ra SKIPPED_AGENTS < /tmp/clawdev-skipped-agents
+fi
+
 if [[ -n "${GENERATED_CREDENTIALS_DIR:-}" ]]; then
   SOURCE_DIR="$GENERATED_CREDENTIALS_DIR"
 elif [[ -n "${1:-}" ]]; then
@@ -41,6 +46,12 @@ echo "To: $TARGET_DIR"
 echo ""
 
 for agent in "${AGENTS[@]}"; do
+  # Skip if agent is in skipped list
+  if [[ " ${SKIPPED_AGENTS[*]} " =~ " $agent " ]]; then
+    echo "[SKIP] $agent: in skipped list"
+    continue
+  fi
+
   src="$SOURCE_DIR/workspace-$agent"
   tgt="$TARGET_DIR/workspace-$agent"
 
