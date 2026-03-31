@@ -1,4 +1,4 @@
-# 告别"玩具级"Agent：我雇了一整个AI公司，凌晨2点它们在GitLab给我提PR
+# 告别"玩具级"Agent：我雇了一整个AI公司，凌晨2点它们还给我提PR
 
 > 基于OpenClaw的"龙虾"饲养实录与踩坑笔记
 
@@ -8,7 +8,7 @@
 
 手机屏幕亮起的瞬间，我看到一行字：
 
-> **CTO (AI) 提交了 Merge Request #42: 实现 CIFAR-10 图像分类器**
+> **CTO (AI) 提交了 Merge Request #1: 实现 CIFAR-10 图像分类器**
 
 我瞬间清醒了。
 
