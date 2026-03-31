@@ -175,8 +175,12 @@ deploy_configurations() {
         # Create target directory if it doesn't exist
         mkdir -p "$target_dir"
         
-        # Use rsync to copy all files including skills directory
-        if rsync -av --exclude='.git' "$source_dir/" "$target_dir/"; then
+        # Delete old contents except .git (if any)
+        find "$target_dir" -mindepth 1 -not -path '*/.git*' -delete 2>/dev/null || true
+        
+        # Copy all contents, exclude .git
+        if cp -r "$source_dir/." "$target_dir/"; then
+            rm -rf "$target_dir/.git" 2>/dev/null || true
             success_count=$((success_count + 1))
             print_status "Successfully deployed configuration for agent: $agent"
         else
