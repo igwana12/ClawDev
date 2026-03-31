@@ -15,7 +15,7 @@ logger = logging.getLogger("openclaw_acp.agent")
 async def main():
     load_dotenv()
 
-    agent = OpenClawAgent(agent="programmer-a")
+    agent = OpenClawAgent(agent="main")
 
     while (user_input := input("User: ")) != "/exit":
         print("Agent: ", end="", flush=True)
