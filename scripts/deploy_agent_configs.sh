@@ -180,7 +180,6 @@ deploy_configurations() {
         
         # Copy all contents, exclude .git
         if cp -r "$source_dir/." "$target_dir/"; then
-            rm -rf "$target_dir/.git" 2>/dev/null || true
             # Copy required skills for this agent
             copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir"
             success_count=$((success_count + 1))
