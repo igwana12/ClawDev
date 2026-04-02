@@ -25,7 +25,7 @@ DEFAULT_AGENT_CONFIGS = {
 }
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -107,8 +107,17 @@ def main():
         action="store_true",
         help="Run without connecting to a real agent (for testing)",
     )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable debug logging",
+    )
 
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     print("Starting ClawDev framework...")
     print(f"Task: {args.task}")
@@ -135,9 +144,7 @@ def main():
     # Run the development chain
     try:
         chain.run(args.task, args.project_name)
-        print(
-            f"Development process completed!"
-        )
+        print(f"Development process completed!")
     except Exception as e:
         print(f"Error during development process: {e}")
         return 1
