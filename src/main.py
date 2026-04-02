@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from dotenv import load_dotenv
 
 from clawdev.chain.chain import ChatChain
 from clawdev.adapter.agent_adapter import AgentAdapter
@@ -158,6 +159,8 @@ def main():
     logger.info("Task: %s", args.task)
     logger.info("Project name: %s", args.project_name)
     logger.info("Configuration: %s", args.config)
+
+    load_dotenv()
 
     if args.no_agent:
         # Run with mock adapter for testing
