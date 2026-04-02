@@ -17,3 +17,6 @@ wheels/
 
 volumes/
 .agents/
+
+# Logs
+logs/
