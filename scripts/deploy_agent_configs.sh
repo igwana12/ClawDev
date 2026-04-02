@@ -178,7 +178,7 @@ deploy_configurations() {
         # Copy all contents, exclude .git
         if cp -r "$source_dir/." "$target_dir/"; then
             # Copy required skills for this agent
-            copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir"
+            copy_required_skills "$openclaw_config_dir" "$agent" "$source_dir/skills"
             success_count=$((success_count + 1))
             print_status "Successfully deployed configuration for agent: $agent"
         else
