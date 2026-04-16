@@ -1,0 +1,21 @@
+// Model blobs and weights — never sync
+.ollama/
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+
+// Caches + build artifacts
+node_modules/
+.venv/
+__pycache__/
+.next/
+dist/
+build/
+.cache/
+
+// Logs
+*.log
+logs/
